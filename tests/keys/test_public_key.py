@@ -9,12 +9,18 @@ import pytest
 
 from gpg_keymanager.exceptions import PGPKeyError
 from gpg_keymanager.keys.constants import (
+    FIELD_KEY_VALIDITY,
+    FIELD_KEY_CAPABILITIES,
+    KEY_FIELDS,
+    KEY_VALIDITY_STATUS_INVALID,
     FIELD_RECORD_TYPE,
     FIELD_USER_ID,
-    RECORD_TYPE_USER_ATTRIBUTE
+    RECORD_TYPE_USER_ATTRIBUTE,
 )
 from gpg_keymanager.keys.public_key import Fingerprint, PublicKey
 from gpg_keymanager.keys.parser import UserPublicKeys
+
+from ..base import MockCallArguments, mock_called_process_error
 
 KEY_FINGERPRINT = 'EA1DAF5C552EEC9BBCEE08D8E8EF3D54894DBC28'
 OTHER_FINGERPRINT = '9EC90B9B66D8C96449DCAAACDE134CA92809EF31'
@@ -24,6 +30,8 @@ SHORT_ID = '894DBC28'
 USER_ID = 'Ilkka Tuohela (Codento Work Key) <hile@codento.com>'
 OTHER_USER_ID = 'Teemu Test <testi@example.com'
 EXPECTED_KEY_CAPABILITIES_COUNT = 2
+
+INVALID_USER_ID = 'uid:e::::123::223::invalid@example.com::::::::::0:'
 
 
 def test_public_key_init():
@@ -39,6 +47,7 @@ def test_public_key_init():
     assert key.__repr__() == 'uninitialized'
 
     assert key.creation_date is None
+    assert key.key_validity == KEY_VALIDITY_STATUS_INVALID
 
     with pytest.raises(PGPKeyError):
         # pylint: disable=pointless-statement
@@ -47,6 +56,32 @@ def test_public_key_init():
     assert key.__load_child_record__(**{FIELD_RECORD_TYPE: RECORD_TYPE_USER_ATTRIBUTE}) is None
     with pytest.raises(PGPKeyError):
         key.__load_child_record__(**{FIELD_RECORD_TYPE: 'test'})
+
+    key.__data__[FIELD_KEY_VALIDITY] = 'n'
+    with pytest.raises(PGPKeyError):
+        key.validate()
+
+    key.__data__[FIELD_KEY_VALIDITY] = 'f'
+    key.__data__[FIELD_KEY_CAPABILITIES] = ['a', 'c']
+    with pytest.raises(PGPKeyError):
+        key.validate()
+
+    key.__data__[FIELD_KEY_CAPABILITIES] = ['a', 'c', 'e']
+    key.validate()
+
+
+def test_public_key_init_user_id():
+    """
+    Assert loading unexpected user ID string to key
+    """
+    key = PublicKey()
+    fields = INVALID_USER_ID.split(':')
+    record = dict(
+        (KEY_FIELDS[index], field if field else None)
+        for index, field in enumerate(fields)
+    )
+    with pytest.raises(PGPKeyError):
+        key.__load_child_record__(**record)
 
 
 # pylint: disable=unused-argument
@@ -68,15 +103,15 @@ def test_public_key_properties(mock_gpg_key_list):
     assert key != OTHER_KEY_ID
     assert key < OTHER_KEY_ID
     assert key <= OTHER_KEY_ID
-    assert OTHER_KEY_ID > key
-    assert OTHER_KEY_ID >= key
+    assert not key > OTHER_KEY_ID
+    assert not key >= OTHER_KEY_ID
 
     assert key.primary_user_id == USER_ID
     assert key.primary_user_id != OTHER_USER_ID
     assert key.primary_user_id < OTHER_USER_ID
     assert key.primary_user_id <= OTHER_USER_ID
-    assert OTHER_USER_ID > key.primary_user_id
-    assert OTHER_USER_ID >= key.primary_user_id
+    assert not key.primary_user_id > OTHER_USER_ID
+    assert not key.primary_user_id >= OTHER_USER_ID
 
     assert key.match_key_id(KEY_ID) is True
     assert key.match_key_id(SHORT_ID) is True
@@ -94,13 +129,14 @@ def test_public_key_properties(mock_gpg_key_list):
     assert isinstance(created, datetime)
     assert created.tzinfo == timezone.utc
 
+    assert isinstance(key.fingerprint, Fingerprint)
     assert isinstance(key.fingerprint.__repr__(), str)
     assert key.fingerprint == KEY_FINGERPRINT
     assert key.fingerprint != OTHER_FINGERPRINT
     assert key.fingerprint > OTHER_FINGERPRINT
     assert key.fingerprint >= OTHER_FINGERPRINT
-    assert OTHER_FINGERPRINT < key.fingerprint
-    assert OTHER_FINGERPRINT <= key.fingerprint
+    assert not key.fingerprint < OTHER_FINGERPRINT
+    assert not key.fingerprint <= OTHER_FINGERPRINT
 
     other_fingerprint = Fingerprint(key, **{FIELD_USER_ID: OTHER_FINGERPRINT})
     assert key.fingerprint == key.fingerprint
@@ -126,3 +162,71 @@ def test_public_key_validiation(mock_gpg_key_list):
     # Last key is valid
     key = keys[-1]
     key.validate()
+
+
+# pylint: disable=unused-argument
+def test_public_key_delete_from_keyring(mock_gpg_key_list, monkeypatch):
+    """
+    Test command to delete key from keyring
+    """
+    mock_run = MockCallArguments()
+    monkeypatch.setattr('gpg_keymanager.keys.public_key.run', mock_run)
+    keys = UserPublicKeys()
+    keys.load()
+
+    key = keys[0]
+    key.delete_from_keyring()
+    assert mock_run.call_count == 1
+
+    key = keys[0]
+    key.keyring = None
+    key.delete_from_keyring()
+    assert mock_run.call_count == 2
+
+
+# pylint: disable=unused-argument
+def test_public_key_delete_from_keyring_exception(mock_gpg_key_list, monkeypatch):
+    """
+    Test command to delete key from keyring
+    """
+    keys = UserPublicKeys()
+    keys.load()
+
+    monkeypatch.setattr('gpg_keymanager.keys.public_key.run', mock_called_process_error)
+
+    key = keys[0]
+    with pytest.raises(PGPKeyError):
+        key.delete_from_keyring()
+
+
+# pylint: disable=unused-argument
+def test_public_key_update_trust(mock_gpg_key_list, monkeypatch):
+    """
+    Test command to update key trust value
+    """
+    mock_run = MockCallArguments()
+    monkeypatch.setattr('gpg_keymanager.keys.public_key.run', mock_run)
+    keys = UserPublicKeys()
+    keys.load()
+
+    key = keys[0]
+    key.update_trust('full')
+    assert mock_run.call_count == 1
+
+    with pytest.raises(PGPKeyError):
+        key.update_trust(0)
+
+
+# pylint: disable=unused-argument
+def test_public_key_update_trust_error(mock_gpg_key_list, monkeypatch):
+    """
+    Test command to update key trust value with error from CLI
+    """
+    mock_run = MockCallArguments(returncode=1, stderr='Error running command')
+    monkeypatch.setattr('gpg_keymanager.keys.public_key.run', mock_run)
+    keys = UserPublicKeys()
+    keys.load()
+
+    key = keys[0]
+    with pytest.raises(PGPKeyError):
+        key.update_trust('ultimate')

@@ -7,7 +7,7 @@ import pytest
 from gpg_keymanager.exceptions import PGPKeyError
 from gpg_keymanager.keys.parser import PublicKeyDataParser, UserPublicKeys
 
-from ..base import mock_called_process_error
+from ..base import mock_called_process_error, mock_pgp_key_error
 
 TOTAL_KEY_COUNT = 5
 EXPIRED_KEY_COUNT = 2
@@ -63,6 +63,19 @@ def test_user_keys_load(mock_gpg_key_list):
     assert keys.get(TEST_FINGERPRINT) is not None
     with pytest.raises(PGPKeyError):
         keys.get(TEST_EMAIL)
+
+
+def test_user_keys_load_error(monkeypatch):
+    """
+    Test error parsing keys when loading user keys
+    """
+    monkeypatch.setattr(
+        'gpg_keymanager.keys.public_key.PublicKey.__load_child_record__',
+        mock_pgp_key_error
+    )
+    keys = UserPublicKeys()
+    with pytest.raises(PGPKeyError):
+        keys.load()
 
 
 def test_user_keys_load_fail(monkeypatch):

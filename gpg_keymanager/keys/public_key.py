@@ -21,6 +21,7 @@ from .constants import (
     FIELD_KEY_VALIDITY,
     KEY_CAPABILITIES,
     KEY_VALIDITY_FLAGS,
+    KEY_VALIDITY_STATUS_INVALID,
     RECORD_TYPE_FINGERPRINT,
     RECORD_TYPE_SUB_KEY,
     RECORD_TYPE_USER_ATTRIBUTE,
@@ -84,7 +85,10 @@ class KeyData(GpgOutputLine):
         """
         Return key validity
         """
-        return KEY_VALIDITY_FLAGS[self.__data__[FIELD_KEY_VALIDITY].lower()]
+        try:
+            return KEY_VALIDITY_FLAGS[self.__data__[FIELD_KEY_VALIDITY].lower()]
+        except KeyError:
+            return KEY_VALIDITY_STATUS_INVALID
 
     @property
     def creation_date(self):
@@ -132,6 +136,7 @@ class Fingerprint(GpgOutputLineChild):
         return self.fingerprint != other.fingerprint
 
     def __lt__(self, other):
+        print('__lt__', type(self), type(other))
         if isinstance(other, str):
             return self.fingerprint < other
         return self.fingerprint < other.fingerprint

@@ -136,6 +136,7 @@ class OwnerTrustDB(GPGItemCollection):
             raise PGPKeyError(f'Error loading gpg owner trust database: {error}')
 
         for line in stdout:
+            print('load', line)
             if line.startswith('#'):
                 continue
 
