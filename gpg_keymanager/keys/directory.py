@@ -19,9 +19,9 @@ class PublicKeyFile(TreeItem, PublicKeyDataParser):
 
     # pylint: disable=redefined-builtin
     # pylint: disable=unused-argument
-    def __init__(self, path, create_missing=False, sorted=True, mode=None, excluded=None):  # noqa
+    def __init__(self, path, keys=[], create_missing=False, sorted=True, mode=None, excluded=None):  # noqa
         TreeItem.__init__(self)
-        PublicKeyDataParser.__init__(self, str(self))
+        PublicKeyDataParser.__init__(self, str(self), keys=keys)
 
     def __get_gpg_command_args__(self):
         """
@@ -61,9 +61,7 @@ class PublicKeyDirectory(Tree):
         """
         keys = []
         for keyfile in self:
-            if not keyfile.is_loaded:
-                keyfile.load_keys()
-            keys.extend(keyfile.keys)
+            keys.extend(list(keyfile))
         return keys
 
     def is_excluded(self, item):

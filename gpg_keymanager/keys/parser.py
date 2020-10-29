@@ -110,6 +110,7 @@ class PublicKeyDataParser(GPGItemCollection):
         for key in self:
             if match_key(key, email, fingerprint, key_id):
                 matches.append(key)
+        print('filter', self.__class__)
         return self.__class__(*self.__gpg_args__, keys=matches)
 
     def get(self, value):

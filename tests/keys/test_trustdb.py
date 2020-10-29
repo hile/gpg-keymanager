@@ -2,14 +2,22 @@
 Unit tests for gpg_keymanager.keys.trustdb module
 """
 
+from pathlib import Path
+
 import pytest
 
 from gpg_keymanager.exceptions import PGPKeyError
 from gpg_keymanager.keys.parser import UserPublicKeys
 from gpg_keymanager.keys.trustdb import TrustDBItem
 
-from ..base import mock_called_process_error
-from ..conftest import TEST_KEY_DATA
+from ..base import mock_called_process_error, mock_return_false, MockCallArguments
+from ..conftest import (
+    MOCK_TRUSTDB_EXISTS_METHOD,
+    MOCK_TRUSTDB_RUN_METHOD,
+    TEST_KEY_DATA,
+)
+
+MOCK_TRUSTDB_STALE_PROPERTY = 'gpg_keymanager.keys.trustdb.OwnerTrustDB.stale_trust'
 
 EXPECTED_RECORD_COUNT = 4
 EXPECTED_STALE_COUNT = 3
@@ -108,3 +116,103 @@ def test_trustdb_lookup(mock_gpg_key_list):
     for value in ('invalid item', MISSING_KEY_ID):
         with pytest.raises(PGPKeyError):
             keys.trustdb.get(value)
+
+
+# pylint: disable=unused-argument
+def test_trustdb_remove_stale_entries(mock_gpg_key_list, mock_gpg_trustdb_cleanup):
+    """
+    Test public key trust database stale entry removal function
+    """
+    keys = UserPublicKeys()
+    keys.load()
+    trustdb = keys.trustdb
+
+    mock_exists_method = mock_gpg_trustdb_cleanup['exists']
+    mock_rename_method = mock_gpg_trustdb_cleanup['rename']
+    mock_run_method = mock_gpg_trustdb_cleanup['run']
+
+    trustdb.remove_stale_entries()
+
+    # Check for existing trust database
+    print(mock_exists_method.args, mock_exists_method.kwargs)
+    assert mock_exists_method.call_count == 1
+    assert mock_exists_method.args == ()
+    assert mock_exists_method.kwargs == {}
+
+    # Rename existing trust database call
+    print(mock_rename_method.args, mock_rename_method.kwargs)
+    assert mock_rename_method.call_count == 1
+    assert len(mock_rename_method.args) == 1
+    assert isinstance(mock_rename_method.args[0], Path)
+    assert mock_rename_method.kwargs == {}
+
+    # Check command arguments for trust database import
+    assert mock_run_method.call_count == 1
+    assert len(mock_run_method.args) == 1
+    assert mock_run_method.args[0] == ('gpg', '--import-ownertrust')
+    assert 'input' in mock_run_method.kwargs
+    # One left key remaining with trust to import
+    expected_import = b'4AEA7B607FD11C25882D7C8BCB3B6A73C71838F3:2:\n'
+    assert mock_run_method.kwargs['input'] == expected_import
+
+
+# pylint: disable=unused-argument
+def test_trustdb_remove_stale_entries_no_action(monkeypatch,
+                                                mock_gpg_key_list,
+                                                mock_gpg_trustdb_cleanup):
+    """
+    Test public key trust database stale entry removal function with no
+    stale keys to remove. Command returns immediately when there are no
+    stale items, without calling any of removal methods.
+    """
+    keys = UserPublicKeys()
+    keys.load()
+    trustdb = keys.trustdb
+
+    monkeypatch.setattr(MOCK_TRUSTDB_STALE_PROPERTY, [])
+    trustdb.remove_stale_entries()
+
+    for method in mock_gpg_trustdb_cleanup.values():
+        assert method.call_count == 0
+
+
+# pylint: disable=unused-argument
+def test_trustdb_remove_stale_entries_missing_trustdb(monkeypatch,
+                                                      mock_gpg_key_list,
+                                                      mock_gpg_trustdb_cleanup):
+    """
+    Test calling key trust database stale entry removal when no trust database
+    exists for user
+    """
+    keys = UserPublicKeys()
+    keys.load()
+    trustdb = keys.trustdb
+
+    monkeypatch.setattr(MOCK_TRUSTDB_EXISTS_METHOD, mock_return_false)
+    with pytest.raises(PGPKeyError):
+        trustdb.remove_stale_entries()
+
+
+# pylint: disable=unused-argument
+def test_trustdb_remove_stale_entries_error(monkeypatch,
+                                            mock_gpg_key_list,
+                                            mock_gpg_trustdb_cleanup):
+    """
+    Test calling key trust database stale entry removal with runtime error for gpg command
+
+    This command will NOT fail with error, but
+    """
+    keys = UserPublicKeys()
+    keys.load()
+    trustdb = keys.trustdb
+
+    mock_rename_method = mock_gpg_trustdb_cleanup['rename']
+
+    # Override mocked run method with error
+    monkeypatch.setattr(MOCK_TRUSTDB_RUN_METHOD, mock_called_process_error)
+
+    with pytest.raises(PGPKeyError):
+        trustdb.remove_stale_entries()
+
+    # First rename is for backup creation, second for restore
+    assert mock_rename_method.call_count == 2

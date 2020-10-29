@@ -105,10 +105,11 @@ class OwnerTrustDB(GPGItemCollection):
             else:
                 valid.append(trust)
 
-        backup = USER_TRUSTDB.with_suffix('.gpg.old')
-        if USER_TRUSTDB.exists():
-            USER_TRUSTDB.rename(backup)
+        if not USER_TRUSTDB.exists():
+            raise PGPKeyError(f'No trust gpg database detected {USER_TRUSTDB}')
 
+        backup = USER_TRUSTDB.with_suffix('.gpg.old')
+        USER_TRUSTDB.rename(backup)
         data = '\n'.join(item.value for item in valid)
         try:
             run(
@@ -121,6 +122,7 @@ class OwnerTrustDB(GPGItemCollection):
             self.load()
         except CalledProcessError:
             backup.rename(USER_TRUSTDB)
+            raise PGPKeyError('Error cleaning up user gpg owner trust database')
 
     def load(self):
         """
@@ -136,7 +138,6 @@ class OwnerTrustDB(GPGItemCollection):
             raise PGPKeyError(f'Error loading gpg owner trust database: {error}')
 
         for line in stdout:
-            print('load', line)
             if line.startswith('#'):
                 continue
 
