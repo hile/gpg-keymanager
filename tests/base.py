@@ -30,12 +30,13 @@ class MockCallArguments:
         return self
 
 
-# pylint: disable=no-value-for-parameter
+# pylint: disable=no-value-for-parameter,unused-argument
 def mock_return_false(*args, **kwargs):
     """
     Mock returning false for function
     """
     return False
+
 
 # pylint: disable=no-value-for-parameter
 def mock_called_process_error(*args, **kwargs):

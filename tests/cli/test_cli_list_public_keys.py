@@ -36,12 +36,13 @@ def test_gpg_manager_list_public_keys__no_args(capsys, monkeypatch):
         'list-public-keys',
     ]
     monkeypatch.setattr(sys, 'argv', argv)
-    main()
+    with pytest.raises(SystemExit) as exit_status:
+        main()
+    assert exit_status.value.code == 0
     captured = capsys.readouterr()
     assert captured.err == ''
     lines = captured.out.splitlines()
     assert len(lines) > 0
     for line in lines:
-        print(line)
         match = RE_KEY_OUTPUT.match(line)
         assert match is not None

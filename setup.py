@@ -19,8 +19,8 @@ setup(
         ],
     },
     install_requires=(
-        'systematic-cli>=1.2.0',
-        'systematic-files>=1.1.3',
+        'systematic-cli>=1.3.0',
+        'systematic-files>=1.3.0',
     ),
     classifiers=[
         'Environment :: Console',

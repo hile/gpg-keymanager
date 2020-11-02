@@ -1,0 +1,2 @@
+# Invalid .gpg-id password store config
+hile@iki.fi

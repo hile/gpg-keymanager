@@ -19,7 +19,7 @@ class PublicKeyFile(TreeItem, PublicKeyDataParser):
 
     # pylint: disable=redefined-builtin
     # pylint: disable=unused-argument
-    def __init__(self, path, keys=[], create_missing=False, sorted=True, mode=None, excluded=None):  # noqa
+    def __init__(self, path, keys=list, create_missing=False, sorted=True, mode=None, excluded=None):  # noqa
         TreeItem.__init__(self)
         PublicKeyDataParser.__init__(self, str(self), keys=keys)
 
@@ -78,5 +78,5 @@ class PublicKeyDirectory(Tree):
         """
         matches = []
         for keyfile in self:
-            matches.extend(keyfile.filter_keys(email, key_id))
+            matches.extend(keyfile.filter_keys(email=email, key_id=key_id))
         return matches

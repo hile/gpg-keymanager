@@ -34,4 +34,6 @@ def test_keys_directory_load():
     directory = PublicKeyDirectory(TEST_DIRECTORY)
     assert directory.is_dir()
     assert len(directory.keys) == EXPECTED_KEY_COUNT
-    assert len(directory.filter_keys(key_id=KEY_ID)) == 1
+    filtered = directory.filter_keys(key_id=KEY_ID)
+    assert len(filtered) == 1
+    assert KEY_ID in filtered

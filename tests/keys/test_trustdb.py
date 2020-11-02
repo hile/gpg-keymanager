@@ -10,7 +10,7 @@ from gpg_keymanager.exceptions import PGPKeyError
 from gpg_keymanager.keys.parser import UserPublicKeys
 from gpg_keymanager.keys.trustdb import TrustDBItem
 
-from ..base import mock_called_process_error, mock_return_false, MockCallArguments
+from ..base import mock_called_process_error, mock_return_false
 from ..conftest import (
     MOCK_TRUSTDB_EXISTS_METHOD,
     MOCK_TRUSTDB_RUN_METHOD,

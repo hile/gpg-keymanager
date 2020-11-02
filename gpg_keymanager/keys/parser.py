@@ -29,8 +29,8 @@ class PublicKeyDataParser(GPGItemCollection):
         self.__gpg_args__ = gpg_args
 
         keys = kwargs.pop('keys', None)
-        if keys:
-            self.__items__ = keys
+        if isinstance(keys, (list, tuple)):
+            self.__items__ = list(keys)
             self.__loaded__ = True
 
     def __get_gpg_command_args__(self):
@@ -110,7 +110,6 @@ class PublicKeyDataParser(GPGItemCollection):
         for key in self:
             if match_key(key, email, fingerprint, key_id):
                 matches.append(key)
-        print('filter', self.__class__)
         return self.__class__(*self.__gpg_args__, keys=matches)
 
     def get(self, value):
