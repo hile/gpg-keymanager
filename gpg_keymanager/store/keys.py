@@ -6,8 +6,6 @@ from gpg_keymanager.exceptions import PasswordStoreError, PGPKeyError
 from gpg_keymanager.keys.base import GPGItemCollection
 from gpg_keymanager.keys.utils import validate_key_ids
 
-PASSWORD_STORE_KEY_LIST_FILENAME = '.gpg-id'
-
 
 class PasswordStoreKeys(GPGItemCollection):
     """

@@ -12,20 +12,23 @@ from systematic_files.tree import Tree, TreeItem
 from ..exceptions import PasswordStoreError
 from ..keys.utils import validate_key_ids
 
-from .keys import PasswordStoreKeys, PASSWORD_STORE_KEY_LIST_FILENAME
+from .constants import (
+    ENV_VAR,
+    PASSWORD_STORE_CONFIG_FILES,
+    PASSWORD_STORE_KEY_LIST_FILENAME,
+    PASSWORD_STORE_SECRET_EXTENSION,
+)
+from .keys import PasswordStoreKeys
+from .secret import Secret
+
 
 DEFAULT_PASSWORD_STORE_PATH = '~/.password-store'
-
-ENV_VAR = 'PASSWORD_STORE_DIR'
 
 EXCLUDED_PATTERNS = [
     '.git',
     '.gitattributes',
     '.DS_Store',
 ]
-PASSWORD_STORE_CONFIG_FILES = (
-    PASSWORD_STORE_KEY_LIST_FILENAME,
-)
 PASSWORD_STORE_SECRET_EXTENSIONS = (
     '.gpg',
 )
@@ -132,6 +135,20 @@ class PasswordStore(Tree):
         return None
 
     @property
+    def children(self):
+        """
+        Return both secrets and child directories for this directory
+        """
+        children = []
+        for path in self.iterdir():
+            if path.is_dir() and path.name not in EXCLUDED_PATTERNS:
+                children.append(PasswordStore(path, password_store=self.password_store))
+            if path.is_file() and path.suffix == PASSWORD_STORE_SECRET_EXTENSION:
+                children.append(Secret(self, path))
+        children.sort()
+        return children
+
+    @property
     def gpg_key_ids(self):
         """
         Get gpg key IDs applying to this directory
@@ -166,3 +183,49 @@ class PasswordStore(Tree):
 
         cmd = ['pass', 'init'] + list(gpg_key_ids)
         run_command(*cmd, env=self.environment)
+
+    def get_parent(self, item):
+        """
+        Get parent directory for item in password store
+        """
+        parent = item.parent
+        if parent == self:
+            return self
+        for entry in list(self):
+            if entry.is_dir() and entry == parent:
+                return entry
+        return None
+
+    def get(self, item):
+        """
+        Get secret or directory item by path in password store
+        """
+        item = Path(self).joinpath(item.lstrip(os.sep))
+        for entry in list(self):
+            if entry.is_dir() and item == entry:
+                return entry
+            if entry.is_file():
+                if entry == item or entry == item.with_suffix(PASSWORD_STORE_SECRET_EXTENSION):
+                    parent = self.get_parent(entry)
+                    if not parent:
+                        raise PasswordStoreError(f'Error looking up parent for {entry}')
+                    return Secret(parent, entry)
+        return None
+
+    def secrets(self, recursive=True):
+        """
+        Return secrets in directory
+        """
+        secrets = []
+        if recursive:
+            items = list(self)
+        else:
+            items = self.iterdir()
+        for entry in items:
+            if entry.is_file() and entry.suffix == PASSWORD_STORE_SECRET_EXTENSION:
+                parent = self.get_parent(entry)
+                if not parent:
+                    raise PasswordStoreError(f'Error looking up parent for {entry}')
+                secrets.append(Secret(parent, entry))
+        secrets.sort()
+        return secrets

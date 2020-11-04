@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 from gpg_keymanager.exceptions import PasswordStoreError
-from gpg_keymanager.store.keys import PasswordStoreKeys, PASSWORD_STORE_KEY_LIST_FILENAME
+from gpg_keymanager.store.constants import PASSWORD_STORE_KEY_LIST_FILENAME
+from gpg_keymanager.store.keys import PasswordStoreKeys
 
 INVALID_TEST_FILE = Path(__file__).parent.parent.joinpath(
     'data/password-store/invalid-ids.txt'

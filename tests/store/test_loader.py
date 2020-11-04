@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 from gpg_keymanager.exceptions import PasswordStoreError
-from gpg_keymanager.store.loader import PasswordStore, ENV_VAR
+from gpg_keymanager.store.constants import ENV_VAR
+from gpg_keymanager.store.loader import PasswordStore
 
 from .test_keys import EXPECTED_KEYS_COUNT
 
