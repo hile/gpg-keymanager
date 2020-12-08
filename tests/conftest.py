@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from systematic_cli.process import run_command_lineoutput
+from cli_toolkit.process import run_command_lineoutput
 
 from .base import MockCallArguments
 

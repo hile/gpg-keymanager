@@ -4,7 +4,7 @@ Parser for GPG command line output for public key data
 
 from operator import attrgetter
 
-from systematic_cli.process import run_command_lineoutput
+from cli_toolkit.process import run_command_lineoutput
 
 from ..exceptions import PGPKeyError
 

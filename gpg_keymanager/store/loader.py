@@ -6,8 +6,8 @@ import os
 
 from pathlib import Path
 
-from systematic_cli.process import run_command
-from systematic_files.tree import Tree, TreeItem
+from cli_toolkit.process import run_command
+from pathlib_tree.tree import Tree, TreeItem
 
 from ..exceptions import PasswordStoreError
 from ..keys.utils import validate_key_ids

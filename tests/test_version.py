@@ -1,5 +1,5 @@
 
-from systematic_cli.tests import validate_version_string
+from cli_toolkit.tests.packaging import validate_version_string
 from gpg_keymanager import __version__
 
 

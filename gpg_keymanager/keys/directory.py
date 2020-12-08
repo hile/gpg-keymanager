@@ -4,7 +4,7 @@ Public key archive filesystem directory loader
 
 import pathlib
 
-from systematic_files.tree import Tree, TreeItem
+from pathlib_tree.tree import Tree, TreeItem
 
 from .constants import PUBLIC_KEY_FILE_EXTENSIONS
 from .parser import PublicKeyDataParser

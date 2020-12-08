@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from subprocess import run, CalledProcessError
 
-from systematic_cli.process import run_command_lineoutput
+from cli_toolkit.process import run_command_lineoutput
 
 from ..exceptions import PGPKeyError
 from .base import GPGItemCollection
