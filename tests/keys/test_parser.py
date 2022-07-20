@@ -65,7 +65,8 @@ def test_user_keys_load(mock_gpg_key_list):
         keys.get(TEST_EMAIL)
 
 
-def test_user_keys_load_error(monkeypatch):
+# pylint: disable=unused-argument
+def test_user_keys_load_error(monkeypatch, mock_gpg_key_list):
     """
     Test error parsing keys when loading user keys
     """
@@ -78,7 +79,8 @@ def test_user_keys_load_error(monkeypatch):
         keys.load()
 
 
-def test_user_keys_load_fail(monkeypatch):
+# pylint: disable=unused-argument
+def test_user_keys_load_fail(monkeypatch, mock_gpg_key_list):
     """
     Test failure loading user keys
     """
