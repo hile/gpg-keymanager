@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gpg_keymanager"
-version = "1.0"
+version = "1.0.1"
 description = "gpg pass password store keyring management"
 authors = ["Ilkka Tuohela <hile@iki.fi>"]
 license = "PSF"
