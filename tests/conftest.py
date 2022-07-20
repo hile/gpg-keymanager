@@ -17,6 +17,8 @@ MOCK_TRUSTDB_EXISTS_METHOD = 'gpg_keymanager.keys.trustdb.Path.exists'
 MOCK_TRUSTDB_RENAME_METHOD = 'gpg_keymanager.keys.trustdb.Path.rename'
 MOCK_TRUSTDB_RUN_METHOD = 'gpg_keymanager.keys.trustdb.run'
 
+EXPECTED_PUBLIC_KEY_COUNT = 5
+
 
 def load_key_testdata(*args, **kwargs):
     """
