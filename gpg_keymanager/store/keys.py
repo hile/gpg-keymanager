@@ -54,8 +54,8 @@ class PasswordStoreKeys(GPGItemCollection):
         try:
             validate_key_ids(value)
             super().append(value)
-        except PGPKeyError:
-            raise PasswordStoreError(f'Invalid key {value}')
+        except PGPKeyError as error:
+            raise PasswordStoreError(f'Invalid key {value}: {error}') from error
 
     def get(self, value):
         """

@@ -4,7 +4,7 @@ Parser for GPG command line output for public key data
 
 from operator import attrgetter
 
-from cli_toolkit.process import run_command_lineoutput
+from sys_toolkit.subprocess import run_command_lineoutput
 
 from ..exceptions import PGPKeyError
 
@@ -66,7 +66,7 @@ class PublicKeyDataParser(GPGItemCollection):
             stdout, _stderr = run_command_lineoutput(*command)
             self.__loaded__ = True
         except Exception as error:
-            raise PGPKeyError(error)
+            raise PGPKeyError(error) from error
 
         public_key = None
         for line in stdout:
@@ -83,7 +83,7 @@ class PublicKeyDataParser(GPGItemCollection):
                 elif public_key is not None:
                     public_key.__load_child_record__(**data)
             except PGPKeyError as error:
-                raise PGPKeyError(f'Error parsing GPG output line {line}: {error}')
+                raise PGPKeyError(f'Error parsing GPG output line {line}: {error}') from error
 
         self.__items__.sort(key=attrgetter('primary_user_id'))
 

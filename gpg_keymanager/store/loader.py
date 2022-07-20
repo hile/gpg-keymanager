@@ -1,12 +1,12 @@
 """
-GNU password store directory loader
+GNU standard password store directory loader
 """
 
 import os
 
 from pathlib import Path
 
-from cli_toolkit.process import run_command
+from sys_toolkit.subprocess import run_command
 from pathlib_tree.tree import Tree, TreeItem
 
 from ..exceptions import PasswordStoreError
@@ -170,6 +170,7 @@ class PasswordStore(Tree):
             return True
         return super().is_excluded(item)
 
+    # pylint: disable=arguments-renamed
     def create(self, gpg_key_ids=None):
         """
         Setup password store with 'pass init' and specified list of pgp keys

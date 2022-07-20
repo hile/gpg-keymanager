@@ -11,7 +11,10 @@ unsafe-load-any-extension=no
 
 [MESSAGES CONTROL]
 confidence=
-disable=missing-module-docstring
+disable=
+    missing-module-docstring,
+    use-implicit-booleaness-not-comparison,
+    unnecessary-dunder-call
 enable=c-extension-no-member
 
 [REPORTS]
@@ -79,8 +82,6 @@ indent-after-paren=4
 indent-string='    '
 max-line-length=120
 max-module-lines=1000
-no-space-check=trailing-comma,
-               dict-separator
 single-line-class-stmt=no
 single-line-if-stmt=no
 
@@ -113,7 +114,7 @@ notes=FIXME,
 ignore-comments=yes
 ignore-docstrings=yes
 ignore-imports=no
-min-similarity-lines=50
+min-similarity-lines=10
 
 [CLASSES]
 defining-attr-methods=__init__,
@@ -148,7 +149,7 @@ max-attributes=20
 max-bool-expr=5
 max-branches=12
 max-locals=15
-max-parents=15
+max-parents=10
 max-public-methods=20
 max-returns=6
 max-statements=50

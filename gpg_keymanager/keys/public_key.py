@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from subprocess import run, PIPE, CalledProcessError
 
 from ..exceptions import PGPKeyError
+from .base import FingerprintObject
 from .constants import (
     ACCEPTED_VALIDITY_STATES,
     FIELD_CREATION_DATE,
@@ -114,47 +115,13 @@ class GpgOutputLineChild(GpgOutputLine):
         self.key = key
 
 
-class Fingerprint(GpgOutputLineChild):
+class Fingerprint(GpgOutputLineChild, FingerprintObject):
     """
     Fingerprint for public key file
     """
     def __init__(self, key, *args, **kwargs):
         super().__init__(key, *args, **kwargs)
         self.fingerprint = self.__data__[FIELD_USER_ID]
-
-    def __repr__(self):
-        return self.fingerprint
-
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.fingerprint == other
-        return self.fingerprint == other.fingerprint
-
-    def __ne__(self, other):
-        if isinstance(other, str):
-            return self.fingerprint != other
-        return self.fingerprint != other.fingerprint
-
-    def __lt__(self, other):
-        print('__lt__', type(self), type(other))
-        if isinstance(other, str):
-            return self.fingerprint < other
-        return self.fingerprint < other.fingerprint
-
-    def __gt__(self, other):
-        if isinstance(other, str):
-            return self.fingerprint > other
-        return self.fingerprint > other.fingerprint
-
-    def __le__(self, other):
-        if isinstance(other, str):
-            return self.fingerprint <= other
-        return self.fingerprint <= other.fingerprint
-
-    def __ge__(self, other):
-        if isinstance(other, str):
-            return self.fingerprint >= other
-        return self.fingerprint >= other.fingerprint
 
 
 class UserID(GpgOutputLineChild):
@@ -272,8 +239,8 @@ class PublicKey(KeyData, GpgOutputLine):
         """
         try:
             return self.user_ids[0]
-        except IndexError:
-            raise PGPKeyError(f'No user ID detected {self}')
+        except IndexError as error:
+            raise PGPKeyError(f'No user ID detected {self}') from error
 
     @property
     def emails(self):
@@ -328,7 +295,7 @@ class PublicKey(KeyData, GpgOutputLine):
         try:
             run(command, check=True)
         except CalledProcessError as error:
-            raise PGPKeyError(f'Error deleting key from user keyring {self}: {error}')
+            raise PGPKeyError(f'Error deleting key from user keyring {self}: {error}') from error
 
         if self.keyring is not None:
             self.keyring.__remove_key__(self.key_id)
@@ -344,8 +311,8 @@ class PublicKey(KeyData, GpgOutputLine):
             value = int(value)
             if value not in TRUSTDB_TRUST_LABELS:
                 raise ValueError
-        except ValueError:
-            raise PGPKeyError(f'Invalid trust value {value}')
+        except ValueError as error:
+            raise PGPKeyError(f'Invalid trust value {value}: {error}') from error
         label = TRUSTDB_TRUST_LABELS[value]
         print(f'set owner trust key {self} trust {label}')
         response = run(

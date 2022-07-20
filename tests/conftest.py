@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from cli_toolkit.process import run_command_lineoutput
+from sys_toolkit.subprocess import run_command_lineoutput
 
 from .base import MockCallArguments
 

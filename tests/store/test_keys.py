@@ -58,7 +58,7 @@ def test_store_keys_load_empty_file(tmpdir):
     Test loading empty password store keys file
     """
     filename = Path(tmpdir).joinpath(PASSWORD_STORE_KEY_LIST_FILENAME)
-    with filename.open('w') as filedescriptor:
+    with filename.open('w', encoding='utf-8') as filedescriptor:
         filedescriptor.write('# This test file is empty\n')
 
     with pytest.raises(PasswordStoreError):

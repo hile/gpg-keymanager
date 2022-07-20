@@ -130,7 +130,7 @@ class Secret:
 
         self.__contents__ = res.stdout
 
-    def save(self, data, overwrite=True):
+    def save(self, data):
         """
         Save password entry, encrypting it with correct PGP keys
 
@@ -172,10 +172,10 @@ class Secret:
                 filename.unlink()
             run(('stty', 'sane'), check=False)
 
-    def save_from_file(self, path, overwrite=True):
+    def save_from_file(self, path):
         """
         Encrypt file to secret
         """
         with open(path, 'rb') as filedescriptor:
             data = filedescriptor.read()
-        self.save(data, overwrite=overwrite)
+        self.save(data)

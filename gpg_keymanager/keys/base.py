@@ -29,9 +29,9 @@ class GPGItemCollection(MutableSequence):
             self.__iter_items__ = iter(self.__items__)
         try:
             return next(self.__iter_items__)
-        except StopIteration:
+        except StopIteration as error:
             self.__iter_items__ = None
-            raise StopIteration
+            raise StopIteration from error
 
     def __delitem__(self, index):
         """
@@ -49,7 +49,7 @@ class GPGItemCollection(MutableSequence):
             try:
                 return self.__items__[item]
             except IndexError as error:
-                raise PGPKeyError(error)
+                raise PGPKeyError(error) from error
         return self.get(item)
 
     def __len__(self):
@@ -92,11 +92,11 @@ class GPGItemCollection(MutableSequence):
         self.__loaded__ = False
 
     # pylint: disable=arguments-differ
-    def count(self, item):
+    def count(self, value):
         """
         Count number of keys
         """
-        return self.__items__.count(item)
+        return self.__items__.count(value)
 
     def insert(self, index, value):
         """
@@ -119,3 +119,44 @@ class GPGItemCollection(MutableSequence):
         Must be implemented in child class
         """
         raise NotImplementedError
+
+
+class FingerprintObject:
+    """
+    Generic key object with 'fingerprint' attribute used for sorting
+    """
+    fingerprint = None
+
+    def __repr__(self):
+        return self.fingerprint if self.fingerprint else str(self.__class__)
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.fingerprint == other
+        return self.fingerprint == other.fingerprint
+
+    def __ne__(self, other):
+        if isinstance(other, str):
+            return self.fingerprint != other
+        return self.fingerprint != other.fingerprint
+
+    def __lt__(self, other):
+        print('__lt__', type(self), type(other))
+        if isinstance(other, str):
+            return self.fingerprint < other
+        return self.fingerprint < other.fingerprint
+
+    def __gt__(self, other):
+        if isinstance(other, str):
+            return self.fingerprint > other
+        return self.fingerprint > other.fingerprint
+
+    def __le__(self, other):
+        if isinstance(other, str):
+            return self.fingerprint <= other
+        return self.fingerprint <= other.fingerprint
+
+    def __ge__(self, other):
+        if isinstance(other, str):
+            return self.fingerprint >= other
+        return self.fingerprint >= other.fingerprint

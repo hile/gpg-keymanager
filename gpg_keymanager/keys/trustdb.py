@@ -8,10 +8,10 @@ import sys
 from pathlib import Path
 from subprocess import run, CalledProcessError
 
-from cli_toolkit.process import run_command_lineoutput
+from sys_toolkit.subprocess import run_command_lineoutput
 
 from ..exceptions import PGPKeyError
-from .base import GPGItemCollection
+from .base import GPGItemCollection, FingerprintObject
 from .constants import TRUSTDB_TRUST_LABELS
 
 USER_TRUSTDB = Path('~/.gnupg/trustdb.gpg').expanduser()
@@ -21,7 +21,7 @@ RE_OWNERTRUST = re.compile(
 )
 
 
-class TrustDBItem:
+class TrustDBItem(FingerprintObject):
     """
     Fingerprint in trust database
     """
@@ -31,34 +31,6 @@ class TrustDBItem:
 
     def __repr__(self):
         return f'{self.fingerprint}:{TRUSTDB_TRUST_LABELS[self.trust]}:'
-
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.fingerprint == other
-        return self.fingerprint == other.fingerprint
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __lt__(self, other):
-        if isinstance(other, str):
-            return self.fingerprint < other
-        return self.fingerprint < other.fingerprint
-
-    def __gt__(self, other):
-        if isinstance(other, str):
-            return self.fingerprint > other
-        return self.fingerprint > other.fingerprint
-
-    def __le__(self, other):
-        if isinstance(other, str):
-            return self.fingerprint <= other
-        return self.fingerprint <= other.fingerprint
-
-    def __ge__(self, other):
-        if isinstance(other, str):
-            return self.fingerprint >= other
-        return self.fingerprint >= other.fingerprint
 
     @property
     def value(self):
@@ -120,9 +92,9 @@ class OwnerTrustDB(GPGItemCollection):
                 check=True
             )
             self.load()
-        except CalledProcessError:
+        except CalledProcessError as error:
             backup.rename(USER_TRUSTDB)
-            raise PGPKeyError('Error cleaning up user gpg owner trust database')
+            raise PGPKeyError('Error cleaning up user gpg owner trust database') from error
 
     def load(self):
         """
@@ -135,7 +107,7 @@ class OwnerTrustDB(GPGItemCollection):
             stdout, _stderr = run_command_lineoutput(*command)
             self.__loaded__ = True
         except Exception as error:
-            raise PGPKeyError(f'Error loading gpg owner trust database: {error}')
+            raise PGPKeyError(f'Error loading gpg owner trust database: {error}') from error
 
         for line in stdout:
             if line.startswith('#'):
