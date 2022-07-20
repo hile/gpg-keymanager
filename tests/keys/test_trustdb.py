@@ -14,7 +14,7 @@ from ..base import mock_called_process_error, mock_return_false
 from ..conftest import (
     MOCK_TRUSTDB_EXISTS_METHOD,
     MOCK_TRUSTDB_RUN_METHOD,
-    TEST_KEY_DATA,
+    MOCK_KEY_DATA,
 )
 
 MOCK_TRUSTDB_STALE_PROPERTY = 'gpg_keymanager.keys.trustdb.OwnerTrustDB.stale_trust'
@@ -32,7 +32,7 @@ def mock_wrong_input_data(*args, **kwargs):
     """
     Mock loading trust database with incorrect test data (key details)
     """
-    with open(TEST_KEY_DATA, encoding='utf-8') as filedescriptor:
+    with open(MOCK_KEY_DATA, encoding='utf-8') as filedescriptor:
         return filedescriptor.readlines(), []
 
 

@@ -6,9 +6,8 @@ from pathlib import Path
 
 from gpg_keymanager.keys.directory import PublicKeyDirectory
 
+from ..conftest import MOCK_KEYS_DIRECTORY
 from .test_public_key import KEY_ID
-
-TEST_DIRECTORY = Path(__file__).parent.parent.joinpath('data/pgp-keys')
 
 EXPECTED_KEY_COUNT = 1
 
@@ -31,7 +30,7 @@ def test_keys_directory_load():
     """
     Test loading test data directory as key directory
     """
-    directory = PublicKeyDirectory(TEST_DIRECTORY)
+    directory = PublicKeyDirectory(MOCK_KEYS_DIRECTORY)
     assert directory.is_dir()
     assert len(directory.keys) == EXPECTED_KEY_COUNT
     filtered = directory.filter_keys(key_id=KEY_ID)

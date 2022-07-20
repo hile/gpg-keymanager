@@ -10,19 +10,19 @@ from gpg_keymanager.exceptions import PasswordStoreError
 from gpg_keymanager.store.constants import PASSWORD_STORE_KEY_LIST_FILENAME
 from gpg_keymanager.store.keys import PasswordStoreKeys
 
-INVALID_TEST_FILE = Path(__file__).parent.parent.joinpath(
-    'data/password-store/invalid-ids.txt'
-)
-VALID_TEST_FILE = Path(__file__).parent.parent.joinpath(
-    'data/password-store/valid-ids.txt'
-)
+from ..conftest import MOCK_STORE_DIRECTORY
+
+INVALID_TEST_FILE = MOCK_STORE_DIRECTORY.joinpath('invalid-ids.txt')
+VALID_TEST_FILE = MOCK_STORE_DIRECTORY.joinpath('valid-ids.txt')
+
 EXPECTED_KEYS_COUNT = 2
 VALID_LONG_KEY_ID = '123456781234ABCD'
 VALID_SHORT_KEY_ID = '12345678'
 INVALID_KEY_ID = '1234abcd'
 
 
-def test_store_keys_load_valid():
+# pylint: disable=unused-argument
+def test_store_keys_load_valid(mock_valid_store):
     """
     Test loading valid password store keys file
     """

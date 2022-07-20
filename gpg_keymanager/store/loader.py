@@ -13,6 +13,7 @@ from ..exceptions import PasswordStoreError
 from ..keys.utils import validate_key_ids
 
 from .constants import (
+    DEFAULT_PASSWORD_STORE_PATH,
     ENV_VAR,
     PASSWORD_STORE_CONFIG_FILES,
     PASSWORD_STORE_KEY_LIST_FILENAME,
@@ -20,9 +21,6 @@ from .constants import (
 )
 from .keys import PasswordStoreKeys
 from .secret import Secret
-
-
-DEFAULT_PASSWORD_STORE_PATH = '~/.password-store'
 
 EXCLUDED_PATTERNS = [
     '.git',
@@ -61,11 +59,13 @@ class PasswordStore(Tree):
     # pylint: disable=redefined-builtin
     # pylint: disable=arguments-differ
     # pylint: disable=unused-argument
-    def __new__(cls, path=DEFAULT_PASSWORD_STORE_PATH, password_store=None,
+    def __new__(cls, path=None, password_store=None,
                 create_missing=False, sorted=True, mode=None, excluded=list):
         """
         Create a password store object
         """
+        if path is None:
+            path = os.environ.get(ENV_VAR, DEFAULT_PASSWORD_STORE_PATH)
         path = Path(path).expanduser()
         return super().__new__(cls, path, excluded=excluded)
 
@@ -144,7 +144,7 @@ class PasswordStore(Tree):
             if path.is_dir() and path.name not in EXCLUDED_PATTERNS:
                 children.append(PasswordStore(path, password_store=self.password_store))
             if path.is_file() and path.suffix == PASSWORD_STORE_SECRET_EXTENSION:
-                children.append(Secret(self, path))
+                children.append(Secret(self, self, path))
         children.sort()
         return children
 
@@ -210,7 +210,7 @@ class PasswordStore(Tree):
                     parent = self.get_parent(entry)
                     if not parent:
                         raise PasswordStoreError(f'Error looking up parent for {entry}')
-                    return Secret(parent, entry)
+                    return Secret(self, parent, entry)
         return None
 
     def secrets(self, recursive=True):
@@ -227,6 +227,6 @@ class PasswordStore(Tree):
                 parent = self.get_parent(entry)
                 if not parent:
                     raise PasswordStoreError(f'Error looking up parent for {entry}')
-                secrets.append(Secret(parent, entry))
+                secrets.append(Secret(self, parent, entry))
         secrets.sort()
         return secrets

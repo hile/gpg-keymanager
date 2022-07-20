@@ -16,11 +16,14 @@ class Secret:
     """
     Encrypted secret in password store
     """
-    def __init__(self, directory, path):
+    def __init__(self, store, directory, path):
         self.__contents__ = None
+        self.store = store
         self.directory = directory
+
+        # Make path in store relative to store root
         try:
-            Path(path).relative_to(self.directory)
+            Path(path).relative_to(self.store)
         except ValueError:
             path = self.directory.joinpath(path)
         self.path = path

@@ -10,13 +10,11 @@ from gpg_keymanager.exceptions import PasswordStoreError
 from gpg_keymanager.store.constants import ENV_VAR
 from gpg_keymanager.store.loader import PasswordStore
 
+from ..conftest import MOCK_VALID_STORE_PATH
 from .test_keys import EXPECTED_KEYS_COUNT
 
 MOCK_RUN_COMMAND = 'gpg_keymanager.store.loader.run_command'
 
-TEST_DIRECTORY = Path(__file__).parent.parent.joinpath(
-    'data/password-store/valid-store'
-)
 TEST_CREATE_KEYS = (
     'AABBCCDDEEDDFFAA',
     '123456781234ABCD',
@@ -50,12 +48,14 @@ class MockCreateStore:
             self.store.mkdir()
 
 
-def test_store_loader_init():
+# pylint: disable=unused-argument
+def test_store_loader_init(mock_valid_store):
     """
     Test initializing a password store loader object
     """
-    store = PasswordStore(TEST_DIRECTORY)
+    store = PasswordStore()
     assert store.is_dir()
+    assert store == MOCK_VALID_STORE_PATH
     env = store.environment
     assert ENV_VAR in env
 
