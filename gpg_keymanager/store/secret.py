@@ -8,6 +8,7 @@ from subprocess import run, PIPE
 from tempfile import mkstemp
 
 from ..exceptions import PasswordStoreError
+from ..utils import reset_tty
 
 from .constants import PASSWORD_ENTRY_ENCODING
 
@@ -126,7 +127,7 @@ class Secret:
             self.__contents__ = None
             res = run(cmd, stdout=PIPE, stderr=PIPE, check=True)
         except Exception:
-            run('stty', 'sane', check=False)
+            reset_tty()
 
         self.__contents__ = res.stdout
 
@@ -170,7 +171,7 @@ class Secret:
             if filename.is_fifo():
                 print('remove', filename)
                 filename.unlink()
-            run(('stty', 'sane'), check=False)
+            reset_tty()
 
     def save_from_file(self, path):
         """
