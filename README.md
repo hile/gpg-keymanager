@@ -1,3 +1,5 @@
+![CI pipeline](https://github.com/hile/gpg-keymanager/actions/workflows/main.yml/badge.svg)
+
 # GPG keyring and password store key management utilities
 
 This python module contains utilities to manage user PGP keys and encryption keys
