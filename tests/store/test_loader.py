@@ -9,11 +9,19 @@ import pytest
 from gpg_keymanager.exceptions import PasswordStoreError
 from gpg_keymanager.store.constants import ENV_VAR
 from gpg_keymanager.store.loader import PasswordStore
+from gpg_keymanager.store.secret import Secret
 
 from ..conftest import MOCK_VALID_STORE_PATH
 from .test_keys import EXPECTED_KEYS_COUNT
+from .test_secret import validate_secret_properties
 
 MOCK_RUN_COMMAND = 'gpg_keymanager.store.loader.run_command'
+
+VALID_STORE_PATH = Path('dir/other')
+UNEXPECTED_STORE_PATH = Path('foo/bar')
+EXPECTED_PATH_CHILD_COUNT = 1
+EXPECTED_SECRET_CHILD_COUNT = 2
+EXPECTED_RECURSIVE_SECRET_CHILD_COUNT = EXPECTED_SECRET_CHILD_COUNT + 1
 
 TEST_CREATE_KEYS = (
     'AABBCCDDEEDDFFAA',
@@ -127,3 +135,77 @@ def test_store_loader_create(tmpdir):
     store = PasswordStore(path)
     store.create(gpg_key_ids=TEST_CREATE_KEYS)
     assert list(store.gpg_key_ids) == list(TEST_CREATE_KEYS)
+
+
+def test_store_children(mock_valid_store):
+    """
+    Test listing the children objects for a valid store
+    """
+    store = PasswordStore()
+    children = store.children
+    path_children = []
+    secret_children = []
+    for item in children:
+        if isinstance(item, PasswordStore):
+            path_children.append(item)
+        elif isinstance(item, Secret):
+            secret_children.append(item)
+        else:
+            raise ValueError(f'Unexpected child item type: {type(item)}')
+    assert len(path_children) == EXPECTED_PATH_CHILD_COUNT
+    assert len(secret_children) == EXPECTED_SECRET_CHILD_COUNT
+
+
+def test_store_secrets_non_recursive(mock_valid_store):
+    """
+    Test 'secrets' method of password store with 'recursive' as True
+
+    This returns only the 2 secrets in root folder
+    """
+    store = PasswordStore()
+    secrets = store.secrets(recursive=False)
+    assert len(secrets) == EXPECTED_SECRET_CHILD_COUNT
+    for secret in secrets:
+        validate_secret_properties(store, secret)
+
+
+def test_store_secrets_recursive(mock_valid_store):
+    """
+    Test 'secrets' method of password store with 'recursive' as True
+
+    This returns 2 secrets in root folder and the subdirectory secret
+    """
+    store = PasswordStore()
+    secrets = store.secrets(recursive=True)
+    assert len(secrets) == EXPECTED_RECURSIVE_SECRET_CHILD_COUNT
+    for secret in secrets:
+        validate_secret_properties(store, secret)
+
+
+def test_store_get_parent_invalid(mock_valid_store):
+    """
+    Test fetching parent for unexpected item
+    """
+    store = PasswordStore()
+    assert store.get_parent(UNEXPECTED_STORE_PATH) is None
+
+
+def test_store_get_invalid_path(mock_valid_store):
+    """
+    Test fetching invalid path from store
+    """
+    store = PasswordStore()
+    assert store.get(UNEXPECTED_STORE_PATH) is None
+
+
+def test_store_get_valid_items(mock_valid_store):
+    """
+    Test fetching valid paths from store
+    """
+    store = PasswordStore()
+
+    secret = store.get(VALID_STORE_PATH)
+    assert isinstance(secret, Secret)
+
+    parent = secret.parent
+    assert isinstance(store.get(parent.relative_path), PasswordStore)

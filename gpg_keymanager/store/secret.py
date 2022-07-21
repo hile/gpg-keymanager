@@ -16,16 +16,16 @@ class Secret:
     """
     Encrypted secret in password store
     """
-    def __init__(self, store, directory, path):
+    def __init__(self, store, parent, path):
         self.__contents__ = None
         self.store = store
-        self.directory = directory
+        self.parent = parent
 
         # Make path in store relative to store root
         try:
             Path(path).relative_to(self.store)
         except ValueError:
-            path = self.directory.joinpath(path)
+            path = self.parent.joinpath(path)
         self.path = path
 
     def __repr__(self):
@@ -66,14 +66,14 @@ class Secret:
         """
         Return list of key IDs used for encrypting item
         """
-        return self.directory.gpg_key_ids
+        return self.parent.gpg_key_ids
 
     @property
     def relative_path(self):
         """
         Return secret relative path in password store
         """
-        return self.path.relative_to(self.directory.password_store)
+        return self.path.relative_to(self.parent.password_store)
 
     @property
     def data(self):
@@ -157,11 +157,7 @@ class Secret:
             with open(tmp_fd, 'wb') as filedescriptor:
                 filedescriptor.write(data)
             recipient_list = list(chain(*[['-r', key_id] for key_id in self.gpg_key_ids]))
-            cmd = [
-                'gpg',
-                '-e',
-                '-o', str(self.path)
-            ] + recipient_list + [str(filename)]
+            cmd = ['gpg', '-e', '-o', str(self.path)] + recipient_list + [str(filename)]
             res = run(cmd, stdout=PIPE, stderr=PIPE, check=True)
             if res.returncode != 0:
                 raise PasswordStoreError(f'Error saving {self}: {res.stderr}')

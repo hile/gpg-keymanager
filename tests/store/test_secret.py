@@ -5,7 +5,7 @@ Unit tests for gpg_keymanager.store.secret module
 from gpg_keymanager.store.loader import PasswordStore
 from gpg_keymanager.store.secret import Secret
 
-EXPECTED_SECRETS_COUNT = 2
+EXPECTED_SECRETS_COUNT = 3
 
 
 def validate_secret_properties(store, secret):
