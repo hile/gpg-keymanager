@@ -203,9 +203,7 @@ class PasswordStore(Tree):
         Get secret or directory item by path in password store
         """
         item = Path(self).joinpath(str(item).lstrip(os.sep))
-        print('look up', item)
         for entry in list(self):
-            print('compare', item, entry)
             if entry.is_dir() and item == entry:
                 return entry
             if entry.is_file():

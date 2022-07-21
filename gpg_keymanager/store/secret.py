@@ -118,15 +118,20 @@ class Secret:
         except Exception as error:
             raise PasswordStoreError(f'Error looking up password from {self}') from error
 
+    def __get_gpg_file_contents__(self):
+        """
+        Return contents of specified PGP file with PGP CLI command
+        """
+        cmd = ('gpg', '-o-', '-d', str(self.path))
+        res = run(cmd, stdout=PIPE, stderr=PIPE, check=True)
+        return res.stdout
+
     def load(self):
         """
         Load secret contents to self.__contents__ as bytes
         """
-        cmd = ('gpg', '-o-', '-d', str(self.path))
         try:
-            self.__contents__ = None
-            res = run(cmd, stdout=PIPE, stderr=PIPE, check=True)
-            self.__contents__ = res.stdout
+            self.__contents__ = self.__get_gpg_file_contents__()
         except Exception:
             self.__contents__ = None
 
@@ -164,7 +169,6 @@ class Secret:
             if backup.is_file():
                 backup.unlink()
             if filename.is_fifo():
-                print('remove', filename)
                 filename.unlink()
 
     def save_from_file(self, path):
