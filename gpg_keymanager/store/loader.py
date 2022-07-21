@@ -185,14 +185,15 @@ class PasswordStore(Tree):
         cmd = ['pass', 'init'] + list(gpg_key_ids)
         run_command(*cmd, env=self.environment)
 
-    def get_parent(self, item):
+    def get_parent(self, item, iterable=None):
         """
         Get parent directory for item in password store
         """
+        iterable = iterable if iterable is not None else list(self)
         parent = item.parent
         if parent == self:
             return self
-        for entry in list(self):
+        for entry in iterable:
             if entry.is_dir() and entry == parent:
                 return entry
         return None
@@ -201,15 +202,15 @@ class PasswordStore(Tree):
         """
         Get secret or directory item by path in password store
         """
-        item = Path(self).joinpath(item.lstrip(os.sep))
+        item = Path(self).joinpath(str(item).lstrip(os.sep))
+        print('look up', item)
         for entry in list(self):
+            print('compare', item, entry)
             if entry.is_dir() and item == entry:
                 return entry
             if entry.is_file():
                 if entry == item or entry == item.with_suffix(PASSWORD_STORE_SECRET_EXTENSION):
                     parent = self.get_parent(entry)
-                    if not parent:
-                        raise PasswordStoreError(f'Error looking up parent for {entry}')
                     return Secret(self, parent, entry)
         return None
 
@@ -224,9 +225,7 @@ class PasswordStore(Tree):
             items = self.iterdir()
         for entry in items:
             if entry.is_file() and entry.suffix == PASSWORD_STORE_SECRET_EXTENSION:
-                parent = self.get_parent(entry)
-                if not parent:
-                    raise PasswordStoreError(f'Error looking up parent for {entry}')
+                parent = self.get_parent(entry, items)
                 secrets.append(Secret(self, parent, entry))
         secrets.sort()
         return secrets
