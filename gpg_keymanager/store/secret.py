@@ -2,6 +2,8 @@
 Password store secret item
 """
 
+from operator import eq, ge, gt, le, lt, ne
+
 from itertools import chain
 from pathlib import Path
 from subprocess import run, PIPE
@@ -29,37 +31,33 @@ class Secret:
         self.path = path
 
     def __repr__(self):
-        return f"""{self.relative_path.with_suffix('')}"""
+        return str(self.relative_path.with_suffix(''))
+
+    def __compare__(self, operator, other):
+        """
+        Rick comparison with specified operator
+        """
+        if isinstance(other, Secret):
+            return operator(self.path, other.path)
+        return operator(str(self), str(other))
 
     def __eq__(self, other):
-        if isinstance(other, Secret):
-            return self.path == other.path
-        return self.path == other
+        return self.__compare__(eq, other)
 
     def __ne__(self, other):
-        if isinstance(other, Secret):
-            return self.path != other.path
-        return self.path != other
+        return self.__compare__(ne, other)
 
     def __lt__(self, other):
-        if isinstance(other, Secret):
-            return self.path < other.path
-        return self.path < other
+        return self.__compare__(lt, other)
 
     def __gt__(self, other):
-        if isinstance(other, Secret):
-            return self.path > other.path
-        return self.path > other
+        return self.__compare__(gt, other)
 
     def __le__(self, other):
-        if isinstance(other, Secret):
-            return self.path <= other.path
-        return self.path <= other
+        return self.__compare__(le, other)
 
     def __ge__(self, other):
-        if isinstance(other, Secret):
-            return self.path >= other.path
-        return self.path >= other
+        return self.__compare__(ge, other)
 
     @property
     def gpg_key_ids(self):
