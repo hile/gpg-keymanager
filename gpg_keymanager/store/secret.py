@@ -25,7 +25,7 @@ class Secret:
         try:
             Path(path).relative_to(self.store)
         except ValueError:
-            path = self.parent.joinpath(path)
+            path = self.store.joinpath(path)
         self.path = path
 
     def __repr__(self):

@@ -2,6 +2,7 @@
 Unit tests for gpg_keymanager.store.secret module
 """
 
+from gpg_keymanager.store.keys import PasswordStoreKeys
 from gpg_keymanager.store.loader import PasswordStore
 from gpg_keymanager.store.secret import Secret
 
@@ -13,6 +14,7 @@ def validate_secret_properties(store, secret):
     Validate properties of a Secret object
     """
     assert isinstance(secret, Secret)
+    assert isinstance(secret.gpg_key_ids, PasswordStoreKeys)
     assert isinstance(secret.__repr__(), str)
     assert secret.store == store
     assert secret.relative_path == secret.path.relative_to(store)
