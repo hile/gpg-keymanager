@@ -6,7 +6,7 @@ from operator import eq, ge, gt, le, lt, ne
 
 from itertools import chain
 from pathlib import Path
-from subprocess import run, PIPE
+from subprocess import run, PIPE, CalledProcessError
 from tempfile import mkstemp
 
 from ..exceptions import PasswordStoreError
@@ -93,7 +93,7 @@ class Secret:
             self.load()
         try:
             return str(self.__contents__, 'utf-8').rstrip('\n')
-        except Exception as error:
+        except ValueError as error:
             raise PasswordStoreError(f'Error parsing {self} as string') from error
 
     @property
@@ -113,27 +113,26 @@ class Secret:
         This uses the pass password-store convention of storing multi-line data with password
         on first line and other details on following lines
         """
-        try:
-            return self.lines[0]
-        except Exception as error:
-            raise PasswordStoreError(f'Error looking up password from {self}') from error
+        if not self.lines:
+            raise PasswordStoreError('No text lines in secret data')
+        return self.lines[0]
 
     def __get_gpg_file_contents__(self):
         """
         Return contents of specified PGP file with PGP CLI command
         """
-        cmd = ('gpg', '-o-', '-d', str(self.path))
-        res = run(cmd, stdout=PIPE, stderr=PIPE, check=True)
-        return res.stdout
+        try:
+            cmd = ('gpg', '-o-', '-d', str(self.path))
+            res = run(cmd, stdout=PIPE, stderr=PIPE, check=True)
+            return res.stdout
+        except CalledProcessError as error:
+            raise PasswordStoreError(f'Error loading secret {self.path}: {error}') from error
 
     def load(self):
         """
         Load secret contents to self.__contents__ as bytes
         """
-        try:
-            self.__contents__ = self.__get_gpg_file_contents__()
-        except Exception:
-            self.__contents__ = None
+        self.__contents__ = self.__get_gpg_file_contents__()
 
     def save(self, data):
         """

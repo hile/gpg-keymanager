@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from sys_toolkit.tests.mock import MockCalledMethod
 from sys_toolkit.subprocess import run_command_lineoutput
 
 from .base import MockCallArguments
@@ -25,6 +26,17 @@ MOCK_TRUSTDB_RENAME_METHOD = 'gpg_keymanager.keys.trustdb.Path.rename'
 MOCK_TRUSTDB_RUN_METHOD = 'gpg_keymanager.keys.trustdb.run'
 
 EXPECTED_PUBLIC_KEY_COUNT = 5
+
+# Mock binary contents for data parser. This is first bytes of /bin/sh on macOS
+MOCK_SECRET_BINARY_CONTENTS = b'\xca\xfe\xba\xbe\x00\x00\x00\x02\x01\x00\x00\x07\x00\x00\x00\x03\x00\x00'
+
+# Test password in generated sectet text entry
+MOCK_SECRET_PASSWORD = 'verysecretpassword'
+# Multiline mock contents of a secret
+MOCK_SECRET_STRING_CONTENTS = f"""{MOCK_SECRET_PASSWORD}
+
+This file contains mocked condifential data for GPG output file tests.
+""".strip()
 
 
 def load_key_testdata(*args, **kwargs):
@@ -87,3 +99,30 @@ def mock_valid_store(monkeypatch):
     Mock configuring a valid password store
     """
     monkeypatch.setenv('PASSWORD_STORE_DIR', str(MOCK_VALID_STORE_PATH))
+
+
+@pytest.fixture
+def mock_secret_empty_data(monkeypatch):
+    """
+    Mock reading GPG secret file string contents with empty file
+    """
+    mock_method = MockCalledMethod(return_value=bytes('', encoding='utf-8'))
+    monkeypatch.setattr('gpg_keymanager.store.secret.Secret.__get_gpg_file_contents__', mock_method)
+
+
+@pytest.fixture
+def mock_secret_string_data(monkeypatch):
+    """
+    Mock reading GPG secret file string contents from Secret object
+    """
+    mock_method = MockCalledMethod(return_value=bytes(MOCK_SECRET_STRING_CONTENTS, encoding='utf-8'))
+    monkeypatch.setattr('gpg_keymanager.store.secret.Secret.__get_gpg_file_contents__', mock_method)
+
+
+@pytest.fixture
+def mock_secret_binary_data(monkeypatch):
+    """
+    Mock reading GPG secret file binary contents from Secret object
+    """
+    mock_method = MockCalledMethod(return_value=MOCK_SECRET_BINARY_CONTENTS)
+    monkeypatch.setattr('gpg_keymanager.store.secret.Secret.__get_gpg_file_contents__', mock_method)
