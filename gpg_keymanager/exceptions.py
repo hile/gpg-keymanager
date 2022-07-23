@@ -13,3 +13,9 @@ class PasswordStoreError(Exception):
     """
     Execptions raised by password store handling utilities
     """
+
+
+class KeyManagerError(Exception):
+    """
+    Execptions raised by password store handling utilities
+    """

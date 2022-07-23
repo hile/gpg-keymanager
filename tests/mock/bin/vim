@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+#
+# Mock executable for vim
+#
+echo "run vim"

@@ -10,6 +10,7 @@ import pytest
 
 from sys_toolkit.tests.mock import MockCalledMethod
 from sys_toolkit.subprocess import run_command_lineoutput
+from sys_toolkit.path import Executables
 
 from gpg_keymanager.store.loader import PasswordStore
 
@@ -17,6 +18,7 @@ from .base import MockCallArguments
 
 MOCK_DATA = Path(__file__).parent.joinpath('mock')
 
+MOCK_BIN_DIRECTORY = MOCK_DATA.joinpath('bin')
 MOCK_KEYS_DIRECTORY = MOCK_DATA.joinpath('pgp-keys')
 MOCK_STORE_DIRECTORY = MOCK_DATA.joinpath('password-store')
 
@@ -61,6 +63,24 @@ def load_trust_data_testdata(*args, **kwargs):
         with open(MOCK_OWNERTRUST_DATA, encoding='utf-8') as filedescriptor:
             return filedescriptor.readlines(), []
     return run_command_lineoutput(*args, **kwargs)
+
+
+@pytest.fixture
+def mock_editor_path(monkeypatch):
+    """
+    Mock environment PATH to contain only test mock script directory
+    """
+    monkeypatch.setenv('PATH', str(MOCK_BIN_DIRECTORY))
+    Executables.__commands__ = None
+
+
+@pytest.fixture
+def mock_editor_invalid_path(monkeypatch, tmpdir):
+    """
+    Mock environment PATH to contain only directory in tmpdir
+    """
+    monkeypatch.setenv('PATH', str(Path(tmpdir.strpath, 'bin')))
+    Executables.__commands__ = None
 
 
 @pytest.fixture
