@@ -2,12 +2,16 @@
 Python pytest unit tests configuration for gpg_keymanager
 """
 
+import shutil
+
 from pathlib import Path
 
 import pytest
 
 from sys_toolkit.tests.mock import MockCalledMethod
 from sys_toolkit.subprocess import run_command_lineoutput
+
+from gpg_keymanager.store.loader import PasswordStore
 
 from .base import MockCallArguments
 
@@ -91,6 +95,20 @@ def mock_gpg_trustdb_cleanup(monkeypatch):
         'rename': mock_rename_method,
         'run': mock_run_method
     }
+
+
+@pytest.fixture
+def mock_empty_store(tmpdir):
+    """
+    Mock creating an empty store
+    """
+    store_path = Path(tmpdir.strpath, 'test-mock-store')
+    store_path.mkdir()
+    store_path.joinpath('.gpg-id').write_text('12345667', encoding='utf-8')
+    store = PasswordStore(store_path)
+    yield store
+    if store_path.is_dir():
+        shutil.rmtree(store_path)
 
 
 @pytest.fixture

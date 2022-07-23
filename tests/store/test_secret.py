@@ -21,7 +21,6 @@ from ..conftest import (
 )
 
 EXPECTED_SECRETS_COUNT = 3
-
 SECRET_A_PATH = Path('Services/A')
 SECRET_B_PATH = Path('Systems/A')
 
@@ -41,6 +40,29 @@ class MockStdoutCommand(MockCalledMethod):
         Run command, returning self.stdout and self.stderr as bytes
         """
         super().__call__(*args, **kwargs)
+        return self
+
+
+class MockSaveSecret(MockStdoutCommand):
+    """
+    Mock method to save a secret file
+    """
+    def __init__(self, path, stdout='', stderr='', return_value=0, save_string=True):
+        super().__init__(stdout, stderr, return_value)
+        self.path = Path(path)
+        self.save_string = save_string
+        self.returncode = return_value
+
+    def __call__(self, *args, **kwargs):
+        """
+        Create the target file
+        """
+        super().__call__(*args, **kwargs)
+        data = args[0]
+        if self.save_string:
+            self.path.write_text(f'{data}\n', encoding='utf-8 ')
+        else:
+            self.path.write_bytes(data)
         return self
 
 
@@ -227,3 +249,97 @@ def test_secret_read_text_binary_error(mock_secret_binary_data):
         a.text  # pylint: disable=pointless-statement
     with pytest.raises(PasswordStoreError):
         b.text  # pylint: disable=pointless-statement
+
+
+def test_secret_save_error(monkeypatch, mock_empty_store):
+    """
+    Test saving a new secret to root of password store in temporary directory
+    with error running gpg command
+    """
+    secret_path = mock_empty_store.joinpath('test.gpg')
+    mock_run = MockSaveSecret(secret_path, return_value=1)
+    monkeypatch.setattr('gpg_keymanager.store.secret.run', mock_run)
+
+    secret = Secret(mock_empty_store, mock_empty_store, secret_path)
+    assert not secret.path.is_file()
+    with pytest.raises(PasswordStoreError):
+        secret.save(MOCK_SECRET_STRING_CONTENTS)
+
+
+def test_secret_save_string_fail_write_directory(mock_empty_store):
+    """
+    Test saving a new secret to password store path
+    """
+    secret = Secret(mock_empty_store, mock_empty_store, mock_empty_store)
+    assert secret.path.is_dir()
+    with pytest.raises(PasswordStoreError):
+        secret.save(MOCK_SECRET_STRING_CONTENTS)
+
+
+def test_secret_save_ok_bytes_store_root(monkeypatch, mock_empty_store):
+    """
+    Test saving a new secret to root of password store in temporary directory
+    """
+    secret_path = mock_empty_store.joinpath('test.gpg')
+    mock_run = MockSaveSecret(secret_path)
+    monkeypatch.setattr('gpg_keymanager.store.secret.run', mock_run)
+
+    secret = Secret(mock_empty_store, mock_empty_store, secret_path)
+    assert not secret.path.is_file()
+    secret.save(MOCK_SECRET_BINARY_CONTENTS)
+
+
+def test_secret_save_ok_string_store_root(monkeypatch, mock_empty_store):
+    """
+    Test saving a new secret to root of password store in temporary directory
+    """
+    secret_path = mock_empty_store.joinpath('test.gpg')
+    mock_run = MockSaveSecret(secret_path)
+    monkeypatch.setattr('gpg_keymanager.store.secret.run', mock_run)
+
+    secret = Secret(mock_empty_store, mock_empty_store, secret_path)
+    assert not secret.path.is_file()
+    secret.save(MOCK_SECRET_STRING_CONTENTS)
+
+
+def test_secret_save_ok_string_store_subdir(monkeypatch, mock_empty_store):
+    """
+    Test saving a new secret to subdir of password store in temporary directory
+    """
+    secret_path = mock_empty_store.joinpath('Tests/test.gpg')
+    mock_run = MockSaveSecret(secret_path)
+    monkeypatch.setattr('gpg_keymanager.store.secret.run', mock_run)
+
+    secret = Secret(mock_empty_store, mock_empty_store, secret_path)
+    assert not secret_path.parent.is_dir()
+    assert not secret.path.is_file()
+    secret.save(MOCK_SECRET_STRING_CONTENTS)
+
+
+def test_secret_save_ok_string_existing_file(monkeypatch, mock_empty_store):
+    """
+    Test saving existing file to subdir of password store in temporary directory
+    """
+    secret_path = mock_empty_store.joinpath('Tests/test.gpg')
+    mock_run = MockSaveSecret(secret_path)
+    monkeypatch.setattr('gpg_keymanager.store.secret.run', mock_run)
+
+    secret = Secret(mock_empty_store, mock_empty_store, secret_path)
+    secret_path.parent.mkdir()
+    secret_path.write_text('\n', encoding='utf-8')
+    secret.save(MOCK_SECRET_STRING_CONTENTS)
+
+
+def test_secret_save_from_file(monkeypatch, mock_empty_store):
+    """
+    Test saving a new secret to subdir of password store in temporary directory
+    from a existing file
+    """
+    secret_path = mock_empty_store.joinpath('Tests/test.gpg')
+    mock_run = MockSaveSecret(secret_path)
+    monkeypatch.setattr('gpg_keymanager.store.secret.run', mock_run)
+
+    secret = Secret(mock_empty_store, mock_empty_store, secret_path)
+    assert not secret_path.parent.is_dir()
+    assert not secret.path.is_file()
+    secret.save_from_file(__file__)

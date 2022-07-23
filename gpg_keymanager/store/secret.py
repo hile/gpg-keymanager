@@ -167,8 +167,6 @@ class Secret:
             self.__contents__ = None
             if backup.is_file():
                 backup.unlink()
-            if filename.is_fifo():
-                filename.unlink()
 
     def save_from_file(self, path):
         """
