@@ -9,7 +9,7 @@ import pytest
 
 from sys_toolkit.tests.mock import MockCalledMethod, MockException
 
-from gpg_keymanager.exceptions import PasswordStoreError
+from gpg_keymanager.exceptions import PasswordStoreError, KeyManagerError
 from gpg_keymanager.store.keys import PasswordStoreKeys
 from gpg_keymanager.store.loader import PasswordStore
 from gpg_keymanager.store.secret import Secret
@@ -343,3 +343,39 @@ def test_secret_save_from_file(monkeypatch, mock_empty_store):
     assert not secret_path.parent.is_dir()
     assert not secret.path.is_file()
     secret.save_from_file(__file__)
+
+
+def test_secret_edit(monkeypatch, mock_empty_store, mock_editor_path):
+    """
+    Test editing a secret
+    """
+    secret_path = mock_empty_store.joinpath('test.gpg')
+    mock_run = MockSaveSecret(secret_path)
+    mock_edit = MockSaveSecret(secret_path)
+    monkeypatch.setattr('gpg_keymanager.store.secret.run', mock_run)
+    monkeypatch.setattr('gpg_keymanager.editor.run', mock_edit)
+
+    secret = Secret(mock_empty_store, mock_empty_store, secret_path)
+    assert not secret.path.is_file()
+    secret.save(MOCK_SECRET_STRING_CONTENTS)
+
+    secret.edit()
+    assert mock_edit.call_count == 1
+
+
+def test_secret_edit_error(monkeypatch, mock_empty_store, mock_editor_path):
+    """
+    Test editing a secret with error from editor
+    """
+    secret_path = mock_empty_store.joinpath('test.gpg')
+    mock_run = MockSaveSecret(secret_path)
+    mock_edit_error = MockException(KeyManagerError)
+    monkeypatch.setattr('gpg_keymanager.store.secret.run', mock_run)
+    monkeypatch.setattr('gpg_keymanager.editor.run', mock_edit_error)
+
+    secret = Secret(mock_empty_store, mock_empty_store, secret_path)
+    assert not secret.path.is_file()
+    secret.save(MOCK_SECRET_STRING_CONTENTS)
+
+    with pytest.raises(PasswordStoreError):
+        secret.edit()

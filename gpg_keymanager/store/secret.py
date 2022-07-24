@@ -2,14 +2,16 @@
 Password store secret item
 """
 
-from operator import eq, ge, gt, le, lt, ne
+import shutil
 
 from itertools import chain
+from operator import eq, ge, gt, le, lt, ne
 from pathlib import Path
 from subprocess import run, PIPE, CalledProcessError
-from tempfile import mkstemp
+from tempfile import mkstemp, NamedTemporaryFile
 
-from ..exceptions import PasswordStoreError
+from ..editor import Editor
+from ..exceptions import PasswordStoreError, KeyManagerError
 
 from .constants import PASSWORD_ENTRY_ENCODING
 
@@ -151,7 +153,8 @@ class Secret:
 
         backup = self.path.with_suffix(f'{self.path.suffix}.tmp')
         if self.path.is_file():
-            self.path.rename(backup)
+            shutil.copyfile(self.path, backup)
+            self.path.unlink()
 
         tmp_fd, filename = mkstemp(prefix='pass-', suffix='.tmp')
         filename = Path(filename)
@@ -163,6 +166,7 @@ class Secret:
             res = run(cmd, stdout=PIPE, stderr=PIPE, check=True)
             if res.returncode != 0:
                 raise PasswordStoreError(f'Error saving {self}: {res.stderr}')
+            self.__contents__ = data
         finally:
             self.__contents__ = None
             if backup.is_file():
@@ -175,3 +179,18 @@ class Secret:
         with open(path, 'rb') as filedescriptor:
             data = filedescriptor.read()
         self.save(data)
+
+    def edit(self):
+        """
+        Edit encrypted secret file with editor
+        """
+        editor = Editor()
+        data = self.__get_gpg_file_contents__()
+        with NamedTemporaryFile(prefix='pass.') as tmpfile:
+            tmpfile.write(data)
+            tmpfile.flush()
+            try:
+                editor.edit(tmpfile.name)
+            except KeyManagerError as error:
+                raise PasswordStoreError(f'Error editing secret {self.path}: {error}') from error
+            self.save_from_file(tmpfile.name)
