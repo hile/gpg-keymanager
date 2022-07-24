@@ -33,20 +33,26 @@ class SecureTemporaryDirectory:
     """
     Class to wrap a temporary directory to secure temporary storage
     """
-    def __init__(self, suffix=None, prefix=None, dir=None):  # pylint: disable=redefined-builtin
-        self.__tmpdir__ = mkdtemp(suffix, prefix, dir)  # pylint: disable=redefined-builtin
-        self.path = Path(self.__tmpdir__)
+    def __init__(self, suffix=None, prefix=None, parent_directory=None):
+        self.__suffix__ = suffix
+        self.__prefix__ = prefix
+        self.__parent_directory__ = parent_directory
+        self.__tmpdir__ = None
+        self.path = None
 
-    def create_secure_storage(self):
+    def __enter__(self):
         """
-        Create secure volume storage space and mount it to the temporary directory
+        Enter context
         """
+        self.__tmpdir__ = mkdtemp(self.__suffix__, self.__prefix__, self.__parent_directory__)
+        self.path = Path(self.__tmpdir__)
         self.create_storage_volume()
         self.attach_storage_volume()
+        return self
 
-    def destroy_secure_storage(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         """
-        Create secure volume storage space and mount it to the temporary directory
+        Destruct the secure storage directory when object is removed
         """
         self.detach_storage_volume()
         self.delete_storage_directory()
