@@ -1,4 +1,5 @@
-![CI pipeline](https://github.com/hile/gpg-keymanager/actions/workflows/main.yml/badge.svg)
+![Unit Tests](https://github.com/hile/gpg-keymanager/actions/workflows/unittest.yml/badge.svg)
+![Style Checks](https://github.com/hile/gpg-keymanager/actions/workflows/lint.yml/badge.svg)
 
 # GPG keyring and password store key management utilities
 
