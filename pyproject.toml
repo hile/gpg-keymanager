@@ -1,9 +1,24 @@
 [tool.poetry]
 name = "gpg_keymanager"
-version = "1.0.1"
+version = "1.0.2"
 description = "gpg pass password store keyring management"
 authors = ["Ilkka Tuohela <hile@iki.fi>"]
-license = "PSF"
+readme = "README.md"
+include = [
+    "LICENSE",
+]
+license = "BSD"
+classifiers = [
+    "Environment :: Console",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Security",
+    "Topic :: Utilities",
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
