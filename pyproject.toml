@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gpg_keymanager"
-version = "1.0.3"
+version = "1.0.4"
 description = "gpg pass password store keyring management"
 homepage = "https://github.com/hile/gpg-keymanager"
 authors = ["Ilkka Tuohela <hile@iki.fi>"]
@@ -17,6 +17,7 @@ classifiers = [
     "Operating System :: Unix",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Security",
     "Topic :: Utilities",
 ]
@@ -40,5 +41,5 @@ tox = "^3"
 gpg-keymanager = 'gpg_keymanager.bin.gpg_keymanager:main'
 
 [build-system]
-requires = ["poetry-core>=1.0.8"]
+requires = ["poetry-core>=1.3.2"]
 build-backend = "poetry.core.masonry.api"
