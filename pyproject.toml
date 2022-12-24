@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gpg_keymanager"
-version = "1.1.0"
+version = "1.1.1"
 description = "gpg pass password store keyring management"
 homepage = "https://github.com/hile/gpg-keymanager"
 authors = ["Ilkka Tuohela <hile@iki.fi>"]
@@ -26,16 +26,16 @@ classifiers = [
 python = "^3.9"
 pathlib-tree = "^2"
 
-[tool.poetry.dev-dependencies]
-coverage = "^6.1"
-flake8 = "^5.0"
+[tool.poetry.group.dev.dependencies]
+coverage = "^7"
+flake8 = "^6"
 flake8-bugbear = "^22"
-flake8-quotes = "^3.3"
-pycodestyle = "^2.8"
-pyflakes = "^2.4"
+flake8-quotes = "^3"
+pycodestyle = "^2"
+pyflakes = "^3"
 pylint = "^2"
-pytest = "^7.1"
-tox = "^3"
+pytest = "^7"
+tox = "^4"
 
 [tool.poetry.scripts]
 gpg-keymanager = 'gpg_keymanager.bin.gpg_keymanager:main'
