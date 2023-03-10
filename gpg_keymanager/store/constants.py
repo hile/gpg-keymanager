@@ -1,7 +1,11 @@
+#
+# Copyright (C) 2020-2023 by Ilkka Tuohela <hile@iki.fi>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
 """
 Constants for password store
 """
-
 ENV_VAR = 'PASSWORD_STORE_DIR'
 DEFAULT_PASSWORD_STORE_PATH = '~/.password-store'
 

@@ -1,7 +1,11 @@
+#
+# Copyright (C) 2020-2023 by Ilkka Tuohela <hile@iki.fi>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
 """
 Password store encryption keys handling
 """
-
 from gpg_keymanager.exceptions import PasswordStoreError, PGPKeyError
 from gpg_keymanager.keys.base import GPGItemCollection
 from gpg_keymanager.keys.utils import validate_key_ids

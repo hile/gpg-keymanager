@@ -1,7 +1,11 @@
+#
+# Copyright (C) 2020-2023 by Ilkka Tuohela <hile@iki.fi>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
 """
 Unit tests for 'gpg-keymanager list-public-keys' command
 """
-
 import re
 import sys
 

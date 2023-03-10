@@ -1,10 +1,14 @@
+#
+# Copyright (C) 2020-2023 by Ilkka Tuohela <hile@iki.fi>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
 """
 Constants for PGP key file parsing
 
 Based on documentation in
 http://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob_plain;f=doc/DETAILS
 """
-
 # Extensions of files parsed as public key files
 PUBLIC_KEY_FILE_EXTENSIONS = (
     '.asc',

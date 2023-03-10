@@ -1,7 +1,11 @@
+#
+# Copyright (C) 2020-2023 by Ilkka Tuohela <hile@iki.fi>
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
 """
 Public key archive filesystem directory loader
 """
-
 import pathlib
 
 from pathlib_tree.tree import Tree, TreeItem
