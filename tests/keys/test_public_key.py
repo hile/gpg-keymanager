@@ -72,6 +72,8 @@ def test_public_key_init() -> None:
 
     key.__data__[FIELD_KEY_CAPABILITIES] = ['a', 'c', 'e']
     key.validate()
+    # Also lookup by constant not only strings
+    key.validate([KeyCapability.ENCRYPT])
 
 
 def test_public_key_init_user_id() -> None:
