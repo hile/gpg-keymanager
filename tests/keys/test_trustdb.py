@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from gpg_keymanager.exceptions import PGPKeyError
-from gpg_keymanager.keys.parser import UserPublicKeys
+from gpg_keymanager.keys.loader import UserPublicKeys
 from gpg_keymanager.keys.trustdb import TrustDBItem
 
 from ..base import mock_called_process_error, mock_return_false
@@ -41,7 +41,7 @@ def mock_wrong_input_data(*args, **kwargs):
 
 
 # pylint: disable=unused-argument
-def test_trustdb_properties(mock_gpg_key_list):
+def test_trustdb_properties(mock_gpg_key_list) -> None:
     """
     Test public key trust database properties
     """
@@ -79,7 +79,7 @@ def test_trustdb_properties(mock_gpg_key_list):
     assert not trust >= other
 
 
-def test_trusbdb_load_invalid_data(mock_gpg_key_list, monkeypatch):
+def test_trusbdb_load_invalid_data(mock_gpg_key_list, monkeypatch) -> None:
     """
     Test failure loading trust database with invalid data
     """
@@ -93,7 +93,7 @@ def test_trusbdb_load_invalid_data(mock_gpg_key_list, monkeypatch):
     assert len(keys.trustdb) == 0
 
 
-def test_trusbdb_load_fail(monkeypatch):
+def test_trusbdb_load_fail(monkeypatch) -> None:
     """
     Test failure loading trust database
     """
@@ -106,7 +106,7 @@ def test_trusbdb_load_fail(monkeypatch):
         keys.trustdb.load()
 
 
-def test_trustdb_lookup(mock_gpg_key_list):
+def test_trustdb_lookup(mock_gpg_key_list) -> None:
     """
     Test public key trust database get() method
     """
@@ -123,7 +123,7 @@ def test_trustdb_lookup(mock_gpg_key_list):
 
 
 # pylint: disable=unused-argument
-def test_trustdb_remove_stale_entries(mock_gpg_key_list, mock_gpg_trustdb_cleanup):
+def test_trustdb_remove_stale_entries(mock_gpg_key_list, mock_gpg_trustdb_cleanup) -> None:
     """
     Test public key trust database stale entry removal function
     """
@@ -163,7 +163,7 @@ def test_trustdb_remove_stale_entries(mock_gpg_key_list, mock_gpg_trustdb_cleanu
 # pylint: disable=unused-argument
 def test_trustdb_remove_stale_entries_no_action(monkeypatch,
                                                 mock_gpg_key_list,
-                                                mock_gpg_trustdb_cleanup):
+                                                mock_gpg_trustdb_cleanup) -> None:
     """
     Test public key trust database stale entry removal function with no
     stale keys to remove. Command returns immediately when there are no
@@ -183,7 +183,7 @@ def test_trustdb_remove_stale_entries_no_action(monkeypatch,
 # pylint: disable=unused-argument
 def test_trustdb_remove_stale_entries_missing_trustdb(monkeypatch,
                                                       mock_gpg_key_list,
-                                                      mock_gpg_trustdb_cleanup):
+                                                      mock_gpg_trustdb_cleanup) -> None:
     """
     Test calling key trust database stale entry removal when no trust database
     exists for user
@@ -200,7 +200,7 @@ def test_trustdb_remove_stale_entries_missing_trustdb(monkeypatch,
 # pylint: disable=unused-argument
 def test_trustdb_remove_stale_entries_error(monkeypatch,
                                             mock_gpg_key_list,
-                                            mock_gpg_trustdb_cleanup):
+                                            mock_gpg_trustdb_cleanup) -> None:
     """
     Test calling key trust database stale entry removal with runtime error for gpg command
 

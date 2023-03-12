@@ -10,6 +10,7 @@ import os
 
 from pathlib import Path
 from subprocess import run, CalledProcessError
+from typing import Union
 
 from sys_toolkit.path import Executables
 
@@ -23,11 +24,13 @@ class Editor:
     """
     Wrapper to detect editor binary for editing text files
     """
-    def __init__(self, path=None):
+    path: Path
+
+    def __init__(self, path: Union[str, Path] = None):
         self.path = Path(path) if path else self.__detect_editor__()
 
     @staticmethod
-    def __detect_editor__():
+    def __detect_editor__() -> Path:
         """
         Detect editor path
         """
@@ -39,7 +42,7 @@ class Editor:
             return executables.get(DEFAULT_EDITOR)
         raise KeyManagerError('Suitable text editor not found')
 
-    def edit(self, path):
+    def edit(self, path: Union[str, Path]) -> None:
         """
         Edit specified text file with editor
         """

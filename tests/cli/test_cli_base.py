@@ -13,7 +13,7 @@ import pytest
 from gpg_keymanager.bin.gpg_keymanager import main
 
 
-def test_gpg_manager_help(monkeypatch):
+def test_gpg_manager_help(monkeypatch) -> None:
     """
     Test running 'gpg-keymanager --help'
     """
@@ -23,7 +23,7 @@ def test_gpg_manager_help(monkeypatch):
     assert exit_status.value.code == 0
 
 
-def test_gpg_manager_no_args(monkeypatch):
+def test_gpg_manager_no_args(monkeypatch) -> None:
     """
     Test running 'gpg-keymanager' without arguments
     """

@@ -9,6 +9,7 @@ GNU standard password store directory loader
 import os
 
 from pathlib import Path
+from typing import List, Optional, Union
 
 from sys_toolkit.subprocess import run_command
 from pathlib_tree.tree import Tree, TreeItem
@@ -40,14 +41,22 @@ class PasswordStoreFile(TreeItem):
     """
     Password store file
     """
+    password_store: 'PasswordStore'
+
     # pylint: disable=redefined-builtin
     # pylint: disable=unused-argument
-    def __init__(self, path, password_store, create_missing=False, sorted=True, mode=None, excluded=None):  # noqa
+    def __init__(self,
+                 path: Path,
+                 password_store: 'PasswordStore',
+                 create_missing: bool = False,
+                 sorted: bool = True,
+                 mode: Optional[str] = None,
+                 excluded: Optional[List[str]] = None) -> None:  # noqa
         TreeItem.__init__(self)
         self.password_store = password_store
 
     @property
-    def relative_path(self):
+    def relative_path(self) -> str:
         """
         Return file path in password store as string
         """
@@ -58,13 +67,21 @@ class PasswordStore(Tree):
     """
     GNU password store data directory
     """
+    password_store: Optional['PasswordStore']
+    excluded: Optional[List[str]]
+
     __file_loader_class__ = PasswordStoreFile
 
     # pylint: disable=redefined-builtin
     # pylint: disable=arguments-differ
     # pylint: disable=unused-argument
-    def __new__(cls, path=None, password_store=None,
-                create_missing=False, sorted=True, mode=None, excluded=list):
+    def __new__(cls,
+                path: Optional[Path] = None,
+                password_store: Optional['PasswordStore'] = None,
+                create_missing: bool = False,
+                sorted: bool = True,
+                mode: Optional[str] = None,
+                excluded: Optional[List[str]] = list):
         """
         Create a password store object
         """
@@ -74,18 +91,23 @@ class PasswordStore(Tree):
         return super().__new__(cls, path, excluded=excluded)
 
     # pylint: disable=redefined-builtin
-    def __init__(self, path=DEFAULT_PASSWORD_STORE_PATH, password_store=None, sorted=True, mode=None, excluded=list):
+    def __init__(self,
+                 path: Path = DEFAULT_PASSWORD_STORE_PATH,
+                 password_store: Optional['PasswordStore'] = None,
+                 sorted: bool = True,
+                 mode: Optional[str] = None,
+                 excluded: Optional[List[str]] = list):
         self.excluded = list(excluded) if isinstance(excluded, (tuple, list)) else []
         super().__init__(path, False, sorted, mode, self.excluded)
         self.password_store = password_store if password_store is not None else self
 
-    def __configure_excluded__(self, excluded):
+    def __configure_excluded__(self, excluded: Optional[List[str]]) -> List[str]:
         """
         Configure excluded files for password store
         """
         return super().__configure_excluded__(EXCLUDED_PATTERNS)
 
-    def __load_tree__(self, item):
+    def __load_tree__(self, item: 'PasswordStore') -> 'PasswordStore':
         """
         Load sub directory linked to password store
         """
@@ -97,7 +119,7 @@ class PasswordStore(Tree):
             excluded=self.excluded
         )
 
-    def __load_file__(self, item):
+    def __load_file__(self, item: PasswordStoreFile) -> PasswordStoreFile:
         """
         Load file item to password store
         """
@@ -105,7 +127,7 @@ class PasswordStore(Tree):
         return self.__file_loader__(item, password_store=self.password_store)
 
     @property
-    def environment(self):
+    def environment(self) -> dict:
         """
         Expand environment variables with PASSWORD_STORE_DIR
         """
@@ -114,7 +136,7 @@ class PasswordStore(Tree):
         return env
 
     @property
-    def parents(self):
+    def parents(self) -> List['PasswordStore']:
         """
         Override parents method to limit to directories in password store
         """
@@ -130,7 +152,7 @@ class PasswordStore(Tree):
         return parents
 
     @property
-    def relative_path(self):
+    def relative_path(self) -> Optional[str]:
         """
         Return file path in password store
         """
@@ -139,7 +161,7 @@ class PasswordStore(Tree):
         return None
 
     @property
-    def children(self):
+    def children(self) -> List['PasswordStore']:
         """
         Return both secrets and child directories for this directory
         """
@@ -153,7 +175,7 @@ class PasswordStore(Tree):
         return children
 
     @property
-    def gpg_key_ids(self):
+    def gpg_key_ids(self) -> PasswordStoreKeys:
         """
         Get gpg key IDs applying to this directory
         """
@@ -164,7 +186,7 @@ class PasswordStore(Tree):
                 return PasswordStoreKeys(filename)
         raise PasswordStoreError(f'Error detecting .gpg-id file for {self}')
 
-    def is_excluded(self, item):
+    def is_excluded(self, item) -> bool:
         """
         Only process files with expected filename extensions, exclude any directories
         """
@@ -175,7 +197,7 @@ class PasswordStore(Tree):
         return super().is_excluded(item)
 
     # pylint: disable=arguments-renamed
-    def create(self, gpg_key_ids=None):
+    def create(self, gpg_key_ids: Optional[List[str]] = None) -> None:
         """
         Setup password store with 'pass init' and specified list of pgp keys
 
@@ -202,7 +224,7 @@ class PasswordStore(Tree):
                 return entry
         return None
 
-    def get(self, item):
+    def get(self, item: Union[str, Path]) -> Secret:
         """
         Get secret or directory item by path in password store
         """
@@ -216,7 +238,7 @@ class PasswordStore(Tree):
                     return Secret(self, parent, entry)
         return None
 
-    def secrets(self, recursive=True):
+    def secrets(self, recursive: bool = True) -> List[Secret]:
         """
         Return secrets in directory
         """

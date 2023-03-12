@@ -6,3 +6,5 @@
 """
 Module to load PGP public keys from user keyring and directories
 """
+# flake8: noqa: F401
+from .loader import UserPublicKeys

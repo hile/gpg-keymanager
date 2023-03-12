@@ -7,6 +7,7 @@
 Common methods for unit tests
 """
 from subprocess import CalledProcessError
+from typing import Any, Dict, Iterator, List, Optional
 
 from gpg_keymanager.exceptions import PGPKeyError
 
@@ -16,7 +17,13 @@ class MockCallArguments:
     """
     Test class to validate command call arguments
     """
-    def __init__(self, returncode=0, stdout='', stderr=''):
+    returncode: int
+    stderr: str
+    stdout: str
+    args: Optional[List[Any]]
+    kwargs = Optional[Dict[Any, Any]]
+
+    def __init__(self, returncode: int = 0, stdout: str = '', stderr: str = '') -> None:
         self.call_count = 0
         self.returncode = returncode
         self.stdout = stdout
@@ -24,7 +31,7 @@ class MockCallArguments:
         self.args = None
         self.kwargs = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: List[Any], **kwargs: Dict[Any, Any]) -> 'MockCallArguments':
         """
         Call mocked method, setting parameters to variables
         """
@@ -35,7 +42,7 @@ class MockCallArguments:
 
 
 # pylint: disable=no-value-for-parameter,unused-argument
-def mock_return_false(*args, **kwargs):
+def mock_return_false(*args: List[Any], **kwargs: Dict[Any, Any]) -> Iterator[bool]:
     """
     Mock returning false for function
     """
@@ -43,7 +50,7 @@ def mock_return_false(*args, **kwargs):
 
 
 # pylint: disable=no-value-for-parameter
-def mock_called_process_error(*args, **kwargs):
+def mock_called_process_error(*args: List[Any], **kwargs: Dict[Any, Any]) -> None:
     """
     Mock raising CalledProcessError running shell command
     """
@@ -51,7 +58,7 @@ def mock_called_process_error(*args, **kwargs):
 
 
 # pylint: disable=no-value-for-parameter
-def mock_pgp_key_error(*args, **kwargs):
+def mock_pgp_key_error(*args: List[Any], **kwargs: Dict[Any, Any]) -> None:
     """
     Mock raising PGPKeyError running shell command
     """

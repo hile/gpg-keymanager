@@ -6,6 +6,8 @@
 """
 Password store encryption keys handling
 """
+from pathlib import Path
+
 from gpg_keymanager.exceptions import PasswordStoreError, PGPKeyError
 from gpg_keymanager.keys.base import GPGItemCollection
 from gpg_keymanager.keys.utils import validate_key_ids
@@ -15,14 +17,16 @@ class PasswordStoreKeys(GPGItemCollection):
     """
     Handle password store encryption key files
     """
-    def __init__(self, path):
+    path: Path
+
+    def __init__(self, path: Path) -> None:
         super().__init__()
         self.path = path
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.path)
 
-    def load(self):
+    def load(self) -> None:
         """
         Load password store .gpg-id key list file
 
@@ -51,7 +55,7 @@ class PasswordStoreKeys(GPGItemCollection):
             raise PasswordStoreError(f'{self.path} contains no keys')
         self.extend(keys)
 
-    def append(self, value):
+    def append(self, value: str) -> None:
         """
         Add key to .gpg-id key list
         """
@@ -61,7 +65,7 @@ class PasswordStoreKeys(GPGItemCollection):
         except PGPKeyError as error:
             raise PasswordStoreError(f'Invalid key {value}: {error}') from error
 
-    def get(self, value):
+    def get(self, value: str) -> str:
         """
         Get key
         """

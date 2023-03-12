@@ -13,18 +13,28 @@ from operator import eq, ge, gt, le, lt, ne
 from pathlib import Path
 from subprocess import run, PIPE, CalledProcessError
 from tempfile import mkstemp, NamedTemporaryFile
+from typing import Any, Callable, List, Union, TYPE_CHECKING
 
 from ..editor import Editor
 from ..exceptions import PasswordStoreError, KeyManagerError
 
 from .constants import PASSWORD_ENTRY_ENCODING
 
+if TYPE_CHECKING:
+    from .loader import PasswordStore
+
 
 class Secret:
     """
     Encrypted secret in password store
     """
-    def __init__(self, store, parent, path):
+    store: 'PasswordStore'
+    parent: 'PasswordStore'
+
+    def __init__(self,
+                 store: 'PasswordStore',
+                 parent: 'PasswordStore',
+                 path: Union[str, Path]):
         self.__contents__ = None
         self.store = store
         self.parent = parent
@@ -36,10 +46,10 @@ class Secret:
             path = self.store.joinpath(path)
         self.path = path
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.relative_path.with_suffix(''))
 
-    def __compare__(self, operator, other):
+    def __compare__(self, operator: Callable, other: Any) -> bool:
         """
         Rick comparison with specified operator
         """
@@ -47,40 +57,40 @@ class Secret:
             return operator(self.path, other.path)
         return operator(str(self), str(other))
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return self.__compare__(eq, other)
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return self.__compare__(ne, other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> bool:
         return self.__compare__(lt, other)
 
-    def __gt__(self, other):
+    def __gt__(self, other: Any) -> bool:
         return self.__compare__(gt, other)
 
-    def __le__(self, other):
+    def __le__(self, other: Any) -> bool:
         return self.__compare__(le, other)
 
-    def __ge__(self, other):
+    def __ge__(self, other: Any) -> bool:
         return self.__compare__(ge, other)
 
     @property
-    def gpg_key_ids(self):
+    def gpg_key_ids(self) -> List[str]:
         """
         Return list of key IDs used for encrypting item
         """
         return self.parent.gpg_key_ids
 
     @property
-    def relative_path(self):
+    def relative_path(self) -> str:
         """
         Return secret relative path in password store
         """
         return self.path.relative_to(self.parent.password_store)
 
     @property
-    def data(self):
+    def data(self) -> bytes:
         """
         Return raw data from password store
 
@@ -91,7 +101,7 @@ class Secret:
         return self.__contents__
 
     @property
-    def text(self):
+    def text(self) -> str:
         """
         Load secret contents as utf-8 text
         """
@@ -103,7 +113,7 @@ class Secret:
             raise PasswordStoreError(f'Error parsing {self} as string') from error
 
     @property
-    def lines(self):
+    def lines(self) -> List[str]:
         """
         Return raw data from password store as utf-8 strings
 
@@ -112,7 +122,7 @@ class Secret:
         return self.text.splitlines()
 
     @property
-    def password(self):
+    def password(self) -> str:
         """
         Return password from first line of secret data loaded as string
 
@@ -123,7 +133,7 @@ class Secret:
             raise PasswordStoreError('No text lines in secret data')
         return self.lines[0]
 
-    def __get_gpg_file_contents__(self):
+    def __get_gpg_file_contents__(self) -> bytes:
         """
         Return contents of specified PGP file with PGP CLI command
         """
@@ -134,13 +144,13 @@ class Secret:
         except CalledProcessError as error:
             raise PasswordStoreError(f'Error loading secret {self.path}: {error}') from error
 
-    def load(self):
+    def load(self) -> None:
         """
         Load secret contents to self.__contents__ as bytes
         """
         self.__contents__ = self.__get_gpg_file_contents__()
 
-    def save(self, data):
+    def save(self, data: bytes) -> None:
         """
         Save password entry, encrypting it with correct PGP keys
 
@@ -176,7 +186,7 @@ class Secret:
             if backup.is_file():
                 backup.unlink()
 
-    def save_from_file(self, path):
+    def save_from_file(self, path: Union[str, Path]) -> None:
         """
         Encrypt file to secret
         """
@@ -184,7 +194,7 @@ class Secret:
             data = filedescriptor.read()
         self.save(data)
 
-    def edit(self):
+    def edit(self) -> None:
         """
         Edit encrypted secret file with editor
         """

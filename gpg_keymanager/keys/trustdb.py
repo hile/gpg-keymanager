@@ -11,12 +11,16 @@ import sys
 
 from pathlib import Path
 from subprocess import run, CalledProcessError
+from typing import List, Union, TYPE_CHECKING
 
 from sys_toolkit.subprocess import run_command_lineoutput
 
 from ..exceptions import PGPKeyError
 from .base import GPGItemCollection, FingerprintObject
-from .constants import TRUSTDB_TRUST_LABELS
+from .constants import TRUSTDB_TRUST_LABELS, KeyTrustDB
+
+if TYPE_CHECKING:
+    from .loader import UserPublicKeys
 
 USER_TRUSTDB = Path('~/.gnupg/trustdb.gpg').expanduser()
 
@@ -29,31 +33,36 @@ class TrustDBItem(FingerprintObject):
     """
     Fingerprint in trust database
     """
-    def __init__(self, fingerprint, trust):
-        self.fingerprint = fingerprint
-        self.trust = int(trust)
+    fingerprint: str
+    trust: KeyTrustDB
 
-    def __repr__(self):
+    def __init__(self, fingerprint: str, trust: Union[int, str]):
+        self.fingerprint = fingerprint
+        self.trust = KeyTrustDB(int(trust))
+
+    def __repr__(self) -> str:
         return f'{self.fingerprint}:{TRUSTDB_TRUST_LABELS[self.trust]}:'
 
     @property
-    def value(self):
+    def value(self) -> str:
         """
         Return value in original format for exporting back to trust db
         """
-        return f'{self.fingerprint}:{self.trust}:'
+        return f'{self.fingerprint}:{self.trust.value}:'
 
 
 class OwnerTrustDB(GPGItemCollection):
     """
     GPG owner trust database
     """
-    def __init__(self, keyring):
+    keyring: 'UserPublicKeys'
+
+    def __init__(self, keyring: 'UserPublicKeys') -> None:
         super().__init__()
         self.keyring = keyring
 
     @property
-    def stale_trust(self):
+    def stale_trust(self) -> List[TrustDBItem]:
         """
         Return trust database items for which the key has been removed from user keys
         """
@@ -64,7 +73,7 @@ class OwnerTrustDB(GPGItemCollection):
             if item.fingerprint not in fingerprints
         ]
 
-    def remove_stale_entries(self):
+    def remove_stale_entries(self) -> None:
         """
         Remove any stale trustdb items
 
@@ -100,7 +109,7 @@ class OwnerTrustDB(GPGItemCollection):
             backup.rename(USER_TRUSTDB)
             raise PGPKeyError('Error cleaning up user gpg owner trust database') from error
 
-    def load(self):
+    def load(self) -> None:
         """
         Load keys in owner trust database
         """
@@ -124,7 +133,7 @@ class OwnerTrustDB(GPGItemCollection):
             else:
                 raise PGPKeyError(f'Unexpected owner trust output line: {line}')
 
-    def get(self, value):
+    def get(self, value: str) -> TrustDBItem:
         """
         Get trust database item by key ID or fingerprint
         """

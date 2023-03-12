@@ -9,7 +9,8 @@ Unit tests for gpg_keymanager.keys.directory module
 import pytest
 
 from gpg_keymanager.exceptions import PGPKeyError
-from gpg_keymanager.keys.parser import PublicKeyDataParser, UserPublicKeys
+from gpg_keymanager.keys import UserPublicKeys
+from gpg_keymanager.keys.loader import PublicKeyDataParser
 
 from ..base import mock_called_process_error, mock_pgp_key_error
 
@@ -89,7 +90,7 @@ def test_user_keys_load_fail(monkeypatch, mock_gpg_key_list):
     Test failure loading user keys
     """
     monkeypatch.setattr(
-        'gpg_keymanager.keys.parser.run_command_lineoutput',
+        'gpg_keymanager.keys.loader.run_command_lineoutput',
         mock_called_process_error
     )
     keys = UserPublicKeys()

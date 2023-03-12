@@ -9,6 +9,7 @@ Python pytest unit tests configuration for gpg_keymanager
 import shutil
 
 from pathlib import Path
+from typing import Callable, Dict, Iterator, List, Tuple
 
 import pytest
 
@@ -49,7 +50,7 @@ This file contains mocked condifential data for GPG output file tests.
 """.strip()
 
 
-def load_key_testdata(*args, **kwargs):
+def load_key_testdata(*args, **kwargs) -> Tuple[List[str], List[str]]:
     """
     Load test key data
     """
@@ -70,7 +71,7 @@ def load_trust_data_testdata(*args, **kwargs):
 
 
 @pytest.fixture
-def mock_editor_path(monkeypatch):
+def mock_editor_path(monkeypatch) -> None:
     """
     Mock environment PATH to contain only test mock script directory
     """
@@ -79,7 +80,7 @@ def mock_editor_path(monkeypatch):
 
 
 @pytest.fixture
-def mock_editor_invalid_path(monkeypatch, tmpdir):
+def mock_editor_invalid_path(monkeypatch, tmpdir) -> None:
     """
     Mock environment PATH to contain only directory in tmpdir
     """
@@ -88,12 +89,12 @@ def mock_editor_invalid_path(monkeypatch, tmpdir):
 
 
 @pytest.fixture
-def mock_gpg_key_list(monkeypatch):
+def mock_gpg_key_list(monkeypatch) -> None:
     """
     Mock reading of gpg key list for keys.PublicKeyDataParser
     """
     monkeypatch.setattr(
-        'gpg_keymanager.keys.parser.run_command_lineoutput',
+        'gpg_keymanager.keys.loader.run_command_lineoutput',
         load_key_testdata
     )
     monkeypatch.setattr(
@@ -103,7 +104,7 @@ def mock_gpg_key_list(monkeypatch):
 
 
 @pytest.fixture
-def mock_gpg_trustdb_cleanup(monkeypatch):
+def mock_gpg_trustdb_cleanup(monkeypatch) -> Dict[str, Callable]:
     """
     Mock arguments for gpg trustdb cleanup functions
     """
@@ -122,7 +123,7 @@ def mock_gpg_trustdb_cleanup(monkeypatch):
 
 
 @pytest.fixture
-def mock_empty_store(tmpdir):
+def mock_empty_store(tmpdir) -> Iterator[PasswordStore]:
     """
     Mock creating an empty store
     """
@@ -136,7 +137,7 @@ def mock_empty_store(tmpdir):
 
 
 @pytest.fixture
-def mock_valid_store(monkeypatch):
+def mock_valid_store(monkeypatch) -> Iterator[PasswordStore]:
     """
     Mock configuring a valid password store
     """
@@ -144,7 +145,7 @@ def mock_valid_store(monkeypatch):
 
 
 @pytest.fixture
-def mock_secret_empty_data(monkeypatch):
+def mock_secret_empty_data(monkeypatch) -> None:
     """
     Mock reading GPG secret file string contents with empty file
     """
@@ -153,7 +154,7 @@ def mock_secret_empty_data(monkeypatch):
 
 
 @pytest.fixture
-def mock_secret_string_data(monkeypatch):
+def mock_secret_string_data(monkeypatch) -> None:
     """
     Mock reading GPG secret file string contents from Secret object
     """
@@ -162,7 +163,7 @@ def mock_secret_string_data(monkeypatch):
 
 
 @pytest.fixture
-def mock_secret_binary_data(monkeypatch):
+def mock_secret_binary_data(monkeypatch) -> None:
     """
     Mock reading GPG secret file binary contents from Secret object
     """

@@ -8,6 +8,7 @@ CLI subcommand to list PGP keys
 """
 from argparse import Namespace
 
+from ...keys.public_key import PublicKey
 from .base import GpgKeymanagerCommand
 
 
@@ -18,7 +19,7 @@ class ListPublicKeys(GpgKeymanagerCommand):
     name = 'list-public-keys'
 
     @staticmethod
-    def format_key_details(key) -> str:
+    def format_key_details(key: PublicKey) -> str:
         """
         Format key details for output
         """

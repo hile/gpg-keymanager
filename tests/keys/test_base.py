@@ -6,6 +6,8 @@
 """
 Unit tests for gpg_keymanager.keys.base module
 """
+from typing import List
+
 import pytest
 
 from gpg_keymanager.exceptions import PGPKeyError
@@ -19,19 +21,21 @@ class MockKey:
     """
     Mocked key item with match_key_id() method
     """
-    def __init__(self, key_id):
+    key_id: str
+
+    def __init__(self, key_id: str) -> None:
         self.key_id = key_id
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.key_id
 
-    def __eq__(self, other):
+    def __eq__(self, other: str) -> bool:
         return self.key_id == other
 
-    def __ne__(self, other):
+    def __ne__(self, other: str) -> bool:
         return self.key_id != other
 
-    def match_key_id(self, value):
+    def match_key_id(self, value: str) -> bool:
         """
         Mock match_key_id() lookup for keys
         """
@@ -42,6 +46,8 @@ class LoadableCollection(GPGItemCollection):
     """
     Test base collection with load() and get() implemented
     """
+    __items__: List[MockKey]
+
     def load(self):
         """
         Dummy load method
@@ -58,7 +64,7 @@ class LoadableCollection(GPGItemCollection):
         raise PGPKeyError(f'Error looking up {value}')
 
 
-def test_gpg_item_collection_load_get():
+def test_gpg_item_collection_load_get() -> None:
     """
     Test load and get methods on dummy child class of GPGItemCollection
     """
@@ -71,7 +77,7 @@ def test_gpg_item_collection_load_get():
     assert obj.__items__ == [TEST_KEY]
 
 
-def test_gpg_item_collection_properties():
+def test_gpg_item_collection_properties() -> None:
     """
     Test properties of GPGItemCollection base class
     """
@@ -121,7 +127,7 @@ def test_gpg_item_collection_properties():
     assert obj.is_loaded is False
 
 
-def test_gpg_item_collection_errors():
+def test_gpg_item_collection_errors() -> None:
     """
     Test properties of GPGItemCollection base class
     """

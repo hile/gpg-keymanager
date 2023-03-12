@@ -15,13 +15,14 @@ from gpg_keymanager.keys.constants import (
     FIELD_KEY_VALIDITY,
     FIELD_KEY_CAPABILITIES,
     KEY_FIELDS,
-    KEY_VALIDITY_STATUS_INVALID,
     FIELD_RECORD_TYPE,
     FIELD_USER_ID,
-    RECORD_TYPE_USER_ATTRIBUTE,
+    KeyCapability,
+    KeyValidityStatus,
+    KeyRecordType,
 )
 from gpg_keymanager.keys.public_key import Fingerprint, PublicKey
-from gpg_keymanager.keys.parser import UserPublicKeys
+from gpg_keymanager.keys.loader import UserPublicKeys
 
 from ..base import MockCallArguments, mock_called_process_error
 
@@ -37,7 +38,7 @@ EXPECTED_KEY_CAPABILITIES_COUNT = 2
 INVALID_USER_ID = 'uid:e::::123::223::invalid@example.com::::::::::0:'
 
 
-def test_public_key_init():
+def test_public_key_init() -> None:
     """
     Test initializing a PublicKey object with no data and no associated password store
     """
@@ -50,13 +51,13 @@ def test_public_key_init():
     assert key.__repr__() == 'uninitialized'
 
     assert key.creation_date is None
-    assert key.key_validity == KEY_VALIDITY_STATUS_INVALID
+    assert key.key_validity == KeyValidityStatus.INVALID
 
     with pytest.raises(PGPKeyError):
         # pylint: disable=pointless-statement
         key.primary_user_id
 
-    assert key.__load_child_record__(**{FIELD_RECORD_TYPE: RECORD_TYPE_USER_ATTRIBUTE}) is None
+    assert key.__load_child_record__(**{FIELD_RECORD_TYPE: KeyRecordType.USER_ATTRIBUTE.value}) is None
     with pytest.raises(PGPKeyError):
         key.__load_child_record__(**{FIELD_RECORD_TYPE: 'test'})
 
@@ -73,7 +74,7 @@ def test_public_key_init():
     key.validate()
 
 
-def test_public_key_init_user_id():
+def test_public_key_init_user_id() -> None:
     """
     Assert loading unexpected user ID string to key
     """
@@ -88,7 +89,7 @@ def test_public_key_init_user_id():
 
 
 # pylint: disable=unused-argument
-def test_public_key_properties(mock_gpg_key_list):
+def test_public_key_properties(mock_gpg_key_list) -> None:
     """
     Test properties of loaded public key
     """
@@ -100,7 +101,7 @@ def test_public_key_properties(mock_gpg_key_list):
 
     assert len(key.key_capabilities) == EXPECTED_KEY_CAPABILITIES_COUNT
     for value in key.key_capabilities:
-        assert isinstance(value, str)
+        assert isinstance(value, KeyCapability)
 
     assert key == KEY_ID
     assert key != OTHER_KEY_ID
@@ -150,7 +151,7 @@ def test_public_key_properties(mock_gpg_key_list):
     assert other_fingerprint <= key.fingerprint
 
 
-def test_public_key_validiation(mock_gpg_key_list):
+def test_public_key_validiation(mock_gpg_key_list) -> None:
     """
     Test public key validate() methid
     """
@@ -168,7 +169,7 @@ def test_public_key_validiation(mock_gpg_key_list):
 
 
 # pylint: disable=unused-argument
-def test_public_key_delete_from_keyring(mock_gpg_key_list, monkeypatch):
+def test_public_key_delete_from_keyring(mock_gpg_key_list, monkeypatch) -> None:
     """
     Test command to delete key from keyring
     """
@@ -188,7 +189,7 @@ def test_public_key_delete_from_keyring(mock_gpg_key_list, monkeypatch):
 
 
 # pylint: disable=unused-argument
-def test_public_key_delete_from_keyring_exception(mock_gpg_key_list, monkeypatch):
+def test_public_key_delete_from_keyring_exception(mock_gpg_key_list, monkeypatch) -> None:
     """
     Test command to delete key from keyring
     """
@@ -203,7 +204,7 @@ def test_public_key_delete_from_keyring_exception(mock_gpg_key_list, monkeypatch
 
 
 # pylint: disable=unused-argument
-def test_public_key_update_trust(mock_gpg_key_list, monkeypatch):
+def test_public_key_update_trust(mock_gpg_key_list, monkeypatch) -> None:
     """
     Test command to update key trust value
     """
@@ -221,7 +222,7 @@ def test_public_key_update_trust(mock_gpg_key_list, monkeypatch):
 
 
 # pylint: disable=unused-argument
-def test_public_key_update_trust_error(mock_gpg_key_list, monkeypatch):
+def test_public_key_update_trust_error(mock_gpg_key_list, monkeypatch) -> None:
     """
     Test command to update key trust value with error from CLI
     """

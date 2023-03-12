@@ -23,7 +23,7 @@ INVALID_IDS = (
 )
 
 
-def test_validate_key_ids_valid_values():
+def test_validate_key_ids_valid_values() -> None:
     """
     Test valid values for GPG IDs
     """
@@ -31,7 +31,7 @@ def test_validate_key_ids_valid_values():
         validate_key_ids(value)
 
 
-def test_validate_key_ids_valid_lists():
+def test_validate_key_ids_valid_lists() -> None:
     """
     Test valid values for GPG IDs from lists and tuples
     """
@@ -39,7 +39,7 @@ def test_validate_key_ids_valid_lists():
     validate_key_ids(tuple(VALID_IDS))
 
 
-def test_validate_key_ids_valid_errors():
+def test_validate_key_ids_valid_errors() -> None:
     """
     Test errors in validating key IDs
     """

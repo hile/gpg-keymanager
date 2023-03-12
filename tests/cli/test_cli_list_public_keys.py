@@ -19,7 +19,7 @@ RE_KEY_OUTPUT = re.compile(r'^0x[0-9A-Z]+ .+$')
 
 
 # pylint: disable=unused-argument
-def test_gpg_manager_list_public_keys_help(mock_gpg_key_list, monkeypatch):
+def test_gpg_manager_list_public_keys_help(mock_gpg_key_list, monkeypatch) -> None:
     """
     Test running 'gpg-keymanager --help'
     """
@@ -35,7 +35,7 @@ def test_gpg_manager_list_public_keys_help(mock_gpg_key_list, monkeypatch):
 
 
 # pylint: disable=unused-argument
-def test_gpg_manager_list_public_keys__no_args(mock_gpg_key_list, capsys, monkeypatch):
+def test_gpg_manager_list_public_keys__no_args(mock_gpg_key_list, capsys, monkeypatch) -> None:
     """
     Test running 'gpg-keymanager' without arguments
     """

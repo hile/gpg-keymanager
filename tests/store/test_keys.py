@@ -26,7 +26,7 @@ INVALID_KEY_ID = '1234abcd'
 
 
 # pylint: disable=unused-argument
-def test_store_keys_load_valid(mock_valid_store):
+def test_store_keys_load_valid(mock_valid_store) -> None:
     """
     Test loading valid password store keys file
     """
@@ -46,7 +46,7 @@ def test_store_keys_load_valid(mock_valid_store):
     assert keys.get(INVALID_KEY_ID) is None
 
 
-def test_store_keys_load_no_file(tmpdir):
+def test_store_keys_load_no_file(tmpdir) -> None:
     """
     Test loading non-existing password store keys file
     """
@@ -57,7 +57,7 @@ def test_store_keys_load_no_file(tmpdir):
         keys.load()
 
 
-def test_store_keys_load_empty_file(tmpdir):
+def test_store_keys_load_empty_file(tmpdir) -> None:
     """
     Test loading empty password store keys file
     """
@@ -69,7 +69,7 @@ def test_store_keys_load_empty_file(tmpdir):
         PasswordStoreKeys(filename).load()
 
 
-def test_store_keys_load_invalid():
+def test_store_keys_load_invalid() -> None:
     """
     Test loading invalid password store keys file
     """

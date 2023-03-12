@@ -9,6 +9,8 @@ Constants for PGP key file parsing
 Based on documentation in
 http://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob_plain;f=doc/DETAILS
 """
+from enum import Enum
+
 # Extensions of files parsed as public key files
 PUBLIC_KEY_FILE_EXTENSIONS = (
     '.asc',
@@ -20,22 +22,66 @@ REQUIRED_CAPABILITIES = (
     'encrypt',
 )
 
-# String mapping from key validity flag values
-KEY_VALIDITY_STATUS_DISABLED = 'disabled'
-KEY_VALIDITY_STATUS_EXPIRED = 'expired'
-KEY_VALIDITY_STATUS_INVALID = 'invalid'
-KEY_VALIDITY_STATUS_REVOKED = 'revoked'
-KEY_VALIDITY_STATUS_SPECIAL = 'special'
-KEY_VALIDITY_STATUS_UNKNOWN = 'unknown'
-KEY_VALIDITY_TRUST_MARGINAL = 'marginal'
-KEY_VALIDITY_TRUST_FULL = 'full'
-KEY_VALIDITY_TRUST_ULTIMATE = 'ultimate'
-KEY_VALIDITY_TRUST_WELL_KNOWN = 'well-known'
+
+class KeyCapability(Enum):
+    """
+    Key capabilities
+    """
+    ENCRYPT = 'encrypt'
+    SIGN = 'sign'
+    CERTIFY = 'certify'
+    AUTHENTICATION = 'authentication'
+    UNKNOWN = 'unknown'
+
+
+class KeyValidityStatus(Enum):
+    """
+    Expected values for key validity status field§
+    """
+    DISABLED = 'disabled'
+    EXPIRED = 'expired'
+    INVALID = 'invalid'
+    REVOKED = 'revoked'
+    SPECIAL = 'special'
+    UNKNOWN = 'unknown'
+
+
+class KeyValidityTrust(Enum):
+    """
+    Expected values for key validity trust values
+    """
+    MARGINAL = 'marginal'
+    FULL = 'full'
+    ULTIMATE = 'ultimate'
+    WELL_KNOWN = 'well-known'
+
+
+class KeyRecordType(Enum):
+    """
+    Types of data in key records
+    """
+    FINGERPRINT = 'fpr'
+    PUBLIC_KEY = 'pub'
+    SUB_KEY = 'sub'
+    USER_ATTRIBUTE = 'uat'
+    USER_ID = 'uid'
+
+
+class KeyTrustDB(Enum):
+    """
+    Values in owner trust database exports / imports
+    """
+    UNKNOWN = 2
+    UNTRUSTED = 3
+    MARGINAL = 4
+    FULL = 5
+    ULTIMATE = 6
+
 
 # Accepted PGP key validity states for password store encryption
 ACCEPTED_VALIDITY_STATES = (
-    'full',
-    'ultimate'
+    KeyValidityTrust.FULL,
+    KeyValidityTrust.ULTIMATE,
 )
 
 FIELD_KEY_CAPABILITIES = 'key_capabilities'
@@ -47,11 +93,41 @@ FIELD_KEY_VALIDITY = 'validity'
 FIELD_RECORD_TYPE = 'record_type'
 FIELD_USER_ID = 'user_id'
 
-RECORD_TYPE_FINGERPRINT = 'fpr'
-RECORD_TYPE_PUBLIC_KEY = 'pub'
-RECORD_TYPE_SUB_KEY = 'sub'
-RECORD_TYPE_USER_ATTRIBUTE = 'uat'
-RECORD_TYPE_USER_ID = 'uid'
+# Key capability field values
+KEY_CAPABILITIES = {
+    'e': KeyCapability.ENCRYPT,
+    's': KeyCapability.SIGN,
+    'c': KeyCapability.CERTIFY,
+    'a': KeyCapability.AUTHENTICATION,
+    '?': KeyCapability.UNKNOWN,
+}
+
+# Validity flag values in gpg key details
+KEY_VALIDITY_FLAGS = {
+    'o': KeyValidityStatus.UNKNOWN,
+    'i': KeyValidityStatus.INVALID,
+    'd': KeyValidityStatus.DISABLED,
+    'r': KeyValidityStatus.REVOKED,
+    'e': KeyValidityStatus.EXPIRED,
+    '-': KeyValidityStatus.UNKNOWN,
+    'q': KeyValidityStatus.UNKNOWN,
+    'n': KeyValidityStatus.INVALID,
+    's': KeyValidityStatus.SPECIAL,
+    'm': KeyValidityTrust.MARGINAL,
+    'f': KeyValidityTrust.FULL,
+    'u': KeyValidityTrust.ULTIMATE,
+    'w': KeyValidityTrust.WELL_KNOWN,
+}
+
+# String representations of trust values
+TRUSTDB_TRUST_LABELS = {
+    KeyTrustDB.UNKNOWN: 'unknown',
+    KeyTrustDB.UNTRUSTED: 'untrusted',
+    KeyTrustDB.MARGINAL: 'marginal',
+    KeyTrustDB.FULL: 'full',
+    KeyTrustDB.ULTIMATE: 'ultimate'
+}
+
 
 KEY_FIELDS = (
     'record_type',
@@ -82,45 +158,3 @@ KEY_DATE_FIELDS = (
     'expiration_date',
     'last_update',
 )
-
-# Key capability field values
-KEY_CAPABILITIES = {
-    'e': 'encrypt',
-    's': 'sign',
-    'c': 'certify',
-    'a': 'authentication',
-    '?': 'unknown',
-}
-
-# Validity flag values in gpg key details
-KEY_VALIDITY_FLAGS = {
-    'o': KEY_VALIDITY_STATUS_UNKNOWN,
-    'i': KEY_VALIDITY_STATUS_INVALID,
-    'd': KEY_VALIDITY_STATUS_DISABLED,
-    'r': KEY_VALIDITY_STATUS_REVOKED,
-    'e': KEY_VALIDITY_STATUS_EXPIRED,
-    '-': KEY_VALIDITY_STATUS_UNKNOWN,
-    'q': KEY_VALIDITY_STATUS_UNKNOWN,
-    'n': KEY_VALIDITY_STATUS_INVALID,
-    'm': KEY_VALIDITY_TRUST_MARGINAL,
-    'f': KEY_VALIDITY_TRUST_FULL,
-    'u': KEY_VALIDITY_TRUST_ULTIMATE,
-    'w': KEY_VALIDITY_TRUST_WELL_KNOWN,
-    's': KEY_VALIDITY_STATUS_SPECIAL,
-}
-
-# Values in owner trust database exports / imports
-TRUSTDB_UNKNOWN = 2
-TRUSTDB_UNTRUSTED = 3
-TRUSTDB_MARGINAL = 4
-TRUSTDB_FULLY = 5
-TRUSTDB_ULTIMATE = 6
-
-# String representations of trust values
-TRUSTDB_TRUST_LABELS = {
-    TRUSTDB_UNKNOWN: 'unknown',
-    TRUSTDB_UNTRUSTED: 'untrusted',
-    TRUSTDB_MARGINAL: 'marginal',
-    TRUSTDB_FULLY: 'full',
-    TRUSTDB_ULTIMATE: 'ultimate'
-}

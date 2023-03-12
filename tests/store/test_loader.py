@@ -61,7 +61,7 @@ class MockCreateStore:
 
 
 # pylint: disable=unused-argument
-def test_store_loader_init(mock_valid_store):
+def test_store_loader_init(mock_valid_store) -> None:
     """
     Test initializing a password store loader object
     """
@@ -95,7 +95,7 @@ def test_store_loader_init(mock_valid_store):
     assert isinstance(item.relative_path, str)
 
 
-def test_store_loader_create_mock(tmpdir, monkeypatch):
+def test_store_loader_create_mock(tmpdir, monkeypatch) -> None:
     """
     Test initializing a password store loader object with mocked create command
     """
@@ -128,7 +128,7 @@ def test_store_loader_create_mock(tmpdir, monkeypatch):
     assert list(mock_create_store.args) == expected_args
 
 
-def test_store_loader_create(tmpdir):
+def test_store_loader_create(tmpdir) -> None:
     """
     Test initializing a password store with real 'pass' command
 
@@ -141,7 +141,7 @@ def test_store_loader_create(tmpdir):
     assert list(store.gpg_key_ids) == list(TEST_CREATE_KEYS)
 
 
-def test_store_children(mock_valid_store):
+def test_store_children(mock_valid_store) -> None:
     """
     Test listing the children objects for a valid store
     """
@@ -160,7 +160,7 @@ def test_store_children(mock_valid_store):
     assert len(secret_children) == EXPECTED_SECRET_CHILD_COUNT
 
 
-def test_store_secrets_non_recursive(mock_valid_store):
+def test_store_secrets_non_recursive(mock_valid_store) -> None:
     """
     Test 'secrets' method of password store with 'recursive' as True
 
@@ -173,7 +173,7 @@ def test_store_secrets_non_recursive(mock_valid_store):
         validate_secret_properties(store, secret)
 
 
-def test_store_secrets_recursive(mock_valid_store):
+def test_store_secrets_recursive(mock_valid_store) -> None:
     """
     Test 'secrets' method of password store with 'recursive' as True
 
@@ -186,7 +186,7 @@ def test_store_secrets_recursive(mock_valid_store):
         validate_secret_properties(store, secret)
 
 
-def test_store_get_parent_invalid(mock_valid_store):
+def test_store_get_parent_invalid(mock_valid_store) -> None:
     """
     Test fetching parent for unexpected item
     """
@@ -194,7 +194,7 @@ def test_store_get_parent_invalid(mock_valid_store):
     assert store.get_parent(UNEXPECTED_STORE_PATH) is None
 
 
-def test_store_get_invalid_path(mock_valid_store):
+def test_store_get_invalid_path(mock_valid_store) -> None:
     """
     Test fetching invalid path from store
     """
@@ -202,7 +202,7 @@ def test_store_get_invalid_path(mock_valid_store):
     assert store.get(UNEXPECTED_STORE_PATH) is None
 
 
-def test_store_get_valid_items(mock_valid_store):
+def test_store_get_valid_items(mock_valid_store) -> None:
     """
     Test fetching valid paths from store
     """

@@ -7,11 +7,16 @@
 Public key archive filesystem directory loader
 """
 import pathlib
+from typing import Any, List, Optional, TYPE_CHECKING
 
 from pathlib_tree.tree import Tree, TreeItem
 
 from .constants import PUBLIC_KEY_FILE_EXTENSIONS
-from .parser import PublicKeyDataParser
+from .loader import PublicKeyDataParser
+
+if TYPE_CHECKING:
+    from ..store import PasswordStore
+    from .public_key import PublicKey
 
 
 class PublicKeyFile(TreeItem, PublicKeyDataParser):
@@ -20,14 +25,24 @@ class PublicKeyFile(TreeItem, PublicKeyDataParser):
 
     Overrides loading of keys with default gpg --list-keys flag to --show-keys
     """
+    path: pathlib.Path
+    create_missing: bool
+    sorted: bool
+    mode: Optional[str]
 
     # pylint: disable=redefined-builtin
     # pylint: disable=unused-argument
-    def __init__(self, path, keys=list, create_missing=False, sorted=True, mode=None, excluded=None):  # noqa
+    def __init__(self,
+                 path: pathlib.Path,
+                 keys: List[Any] = list,
+                 create_missing: bool = False,
+                 sorted: bool = True,
+                 mode: Optional[str] = None,
+                 excluded: Optional[List[str]] = None) -> None:  # noqa
         TreeItem.__init__(self)
         PublicKeyDataParser.__init__(self, str(self), keys=keys)
 
-    def __get_gpg_command_args__(self):
+    def __get_gpg_command_args__(self) -> List[str]:
         """
         GPG command arguments
         """
@@ -38,12 +53,19 @@ class PublicKeyDirectory(Tree):
     """
     Public key filesystem directory parser
     """
+    store: 'PasswordStore'
     __file_loader_class__ = PublicKeyFile
 
     # pylint: disable=redefined-builtin
     # pylint: disable=arguments-differ
     # pylint: disable=unused-argument
-    def __new__(cls, path, store=None, create_missing=False, sorted=True, mode=None, excluded=list):
+    def __new__(cls,
+                path: pathlib.Path,
+                store: 'PasswordStore' = None,
+                create_missing: bool = False,
+                sorted: bool = True,
+                mode: Optional[str] = None,
+                excluded: Optional[List[str]] = None) -> None:
         """
         Create a public key directory object
         """
@@ -53,13 +75,19 @@ class PublicKeyDirectory(Tree):
         return super().__new__(cls, path, excluded=excluded)
 
     # pylint: disable=redefined-builtin
-    def __init__(self, path, store=None, create_missing=False, sorted=True, mode=None, excluded=list):
+    def __init__(self,
+                 path: pathlib.Path,
+                 store: 'PasswordStore' = None,
+                 create_missing: bool = False,
+                 sorted: bool = True,
+                 mode: Optional[str] = None,
+                 excluded: Optional[List[str]] = None) -> None:
         self.store = store
         self.excluded = list(excluded) if isinstance(excluded, (tuple, list)) else []
         super().__init__(path, create_missing, sorted, mode, self.excluded)
 
     @property
-    def keys(self):
+    def keys(self) -> List['PublicKey']:
         """
         Load and return all detected public keys
         """
@@ -68,7 +96,7 @@ class PublicKeyDirectory(Tree):
             keys.extend(list(keyfile))
         return keys
 
-    def is_excluded(self, item):
+    def is_excluded(self, item) -> bool:
         """
         Only process files with expected filename extensions, exclude any directories
         """
@@ -76,7 +104,9 @@ class PublicKeyDirectory(Tree):
             return True
         return super().is_excluded(item)
 
-    def filter_keys(self, email=None, key_id=None):
+    def filter_keys(self,
+                    email: Optional[str] = None,
+                    key_id: Optional[str] = None) -> List[PublicKeyFile]:
         """
         Filter keys matching specified attributes
         """

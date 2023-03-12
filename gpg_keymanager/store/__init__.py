@@ -6,3 +6,5 @@
 """
 Python module to handle GNU password store data directories
 """
+# flake8: noqa: F401
+from .loader import PasswordStore

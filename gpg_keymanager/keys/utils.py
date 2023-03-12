@@ -6,8 +6,9 @@
 """
 Utilities for PGP public keys
 """
-
 import re
+
+from typing import List, Tuple, Union
 
 from ..exceptions import PGPKeyError
 
@@ -18,11 +19,11 @@ RE_KEY_ID_FORMATS = (
 )
 
 
-def validate_key_ids(value):
+def validate_key_ids(value: Union[str, List[str], Tuple[str]]):
     """
     Validate PGP key ID value string
     """
-    def match_pattern(value):
+    def match_pattern(value: str):
         """
         Match key ID to valid patterns
         """

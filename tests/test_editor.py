@@ -25,7 +25,7 @@ MOCK_TEST_FILE = '/tmp/test.txt'
 
 
 # pylint: disable=unused-argument
-def test_editor_executable_default_editor(monkeypatch, mock_editor_path):
+def test_editor_executable_default_editor(monkeypatch, mock_editor_path) -> None:
     """
     Test editor with default editor executable
     """
@@ -36,7 +36,7 @@ def test_editor_executable_default_editor(monkeypatch, mock_editor_path):
 
 
 # pylint: disable=unused-argument
-def test_editor_executable_name_from_env(monkeypatch, mock_editor_path):
+def test_editor_executable_name_from_env(monkeypatch, mock_editor_path) -> None:
     """
     Test editor with executable path from environment variables
     """
@@ -46,7 +46,7 @@ def test_editor_executable_name_from_env(monkeypatch, mock_editor_path):
 
 
 # pylint: disable=unused-argument
-def test_editor_executable_not_found(monkeypatch, mock_editor_invalid_path):
+def test_editor_executable_not_found(monkeypatch, mock_editor_invalid_path) -> None:
     """
     Test editor with executable path from environment variables
     """
@@ -56,7 +56,7 @@ def test_editor_executable_not_found(monkeypatch, mock_editor_invalid_path):
 
 
 # pylint: disable=unused-argument
-def test_editor_edit_text_ok(monkeypatch, mock_editor_path):
+def test_editor_edit_text_ok(monkeypatch, mock_editor_path) -> None:
     """
     Test editor with executable path from environment variables
     """
@@ -70,7 +70,7 @@ def test_editor_edit_text_ok(monkeypatch, mock_editor_path):
 
 
 # pylint: disable=unused-argument
-def test_editor_edit_text_error(monkeypatch, mock_editor_path):
+def test_editor_edit_text_error(monkeypatch, mock_editor_path) -> None:
     """
     Test editor with executable path from environment variables and error running command
     """

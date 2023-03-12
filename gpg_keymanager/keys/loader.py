@@ -7,6 +7,7 @@
 Parser for GPG command line output for public key data
 """
 from operator import attrgetter
+from typing import Any, Dict, List, Optional, Tuple
 
 from sys_toolkit.subprocess import run_command_lineoutput
 
@@ -15,10 +16,9 @@ from ..exceptions import PGPKeyError
 from .base import GPGItemCollection
 from .constants import (
     KEY_FIELDS,
-    KEY_VALIDITY_STATUS_EXPIRED,
-    KEY_VALIDITY_STATUS_REVOKED,
     FIELD_RECORD_TYPE,
-    RECORD_TYPE_PUBLIC_KEY
+    KeyValidityStatus,
+    KeyRecordType,
 )
 from .public_key import PublicKey
 from .trustdb import OwnerTrustDB
@@ -28,7 +28,11 @@ class PublicKeyDataParser(GPGItemCollection):
     """
     Parser for public key data from gpg command output
     """
-    def __init__(self, *gpg_args, **kwargs):
+    __gpg_args__: Tuple[str]
+    __loaded__: bool
+    __items__: List[PublicKey]
+
+    def __init__(self, *gpg_args, **kwargs: Dict[Any, Any]):
         super().__init__()
         self.__gpg_args__ = gpg_args
 
@@ -36,8 +40,11 @@ class PublicKeyDataParser(GPGItemCollection):
         if isinstance(keys, (list, tuple)):
             self.__items__ = list(keys)
             self.__loaded__ = True
+        else:
+            self.__items__ = []
+            self.__loaded__ = False
 
-    def __get_gpg_command_args__(self):
+    def __get_gpg_command_args__(self) -> List[str]:
         """
         GPG command arguments
 
@@ -46,20 +53,20 @@ class PublicKeyDataParser(GPGItemCollection):
         return ['--list-keys'] + list(self.__gpg_args__)
 
     @property
-    def expired_keys(self):
+    def expired_keys(self) -> List[PublicKey]:
         """
         Return expired keys
         """
-        return [key for key in self if key.key_validity == KEY_VALIDITY_STATUS_EXPIRED]
+        return [key for key in self if key.key_validity == KeyValidityStatus.EXPIRED]
 
     @property
-    def revoked_keys(self):
+    def revoked_keys(self) -> List[PublicKey]:
         """
         Return revoked keys
         """
-        return [key for key in self if key.key_validity == KEY_VALIDITY_STATUS_REVOKED]
+        return [key for key in self if key.key_validity == KeyValidityStatus.REVOKED]
 
-    def load(self):
+    def load(self) -> None:
         """
         Load public key details with gpg CLI command
         """
@@ -81,7 +88,7 @@ class PublicKeyDataParser(GPGItemCollection):
                     for index, field in enumerate(fields)
                 )
                 record_type = data[FIELD_RECORD_TYPE]
-                if record_type == RECORD_TYPE_PUBLIC_KEY:
+                if record_type == KeyRecordType.PUBLIC_KEY.value:
                     public_key = PublicKey(keyring=self, **data)
                     self.append(public_key)
                 elif public_key is not None:
@@ -91,14 +98,20 @@ class PublicKeyDataParser(GPGItemCollection):
 
         self.__items__.sort(key=attrgetter('primary_user_id'))
 
-    def filter_keys(self, email=None, fingerprint=None, key_id=None):
+    def filter_keys(self,
+                    email: Optional[str] = None,
+                    fingerprint: Optional[str] = None,
+                    key_id: Optional[str] = None) -> List[PublicKey]:
         """
         Filter keys matching specified attributes
 
         Email address can be a fnmatch pattern.
         Key ID is matched by both short and long ID, with and without 0x prefix
         """
-        def match_key(key, email, fingerprint, key_id):
+        def match_key(key,
+                      email: Optional[str],
+                      fingerprint: Optional[str],
+                      key_id: Optional[str]) -> bool:
             """
             Return True if key matches all specified filter conditions
             """
@@ -116,7 +129,7 @@ class PublicKeyDataParser(GPGItemCollection):
                 matches.append(key)
         return self.__class__(*self.__gpg_args__, keys=matches)
 
-    def get(self, value):
+    def get(self, value: str) -> PublicKey:
         """
         Return key for specified key ID or fingerprint
         """
@@ -134,11 +147,13 @@ class UserPublicKeys(PublicKeyDataParser):
 
     Just like PublicKeyDataParser but extended with some arguments
     """
-    def __init__(self, *gpg_args, **kwargs):
+    trustdb: OwnerTrustDB
+
+    def __init__(self, *gpg_args: Tuple[str], **kwargs: Dict[Any, Any]) -> None:
         super().__init__(*gpg_args, **kwargs)
         self.trustdb = OwnerTrustDB(self)
 
-    def cleanup_owner_trust_database(self):
+    def cleanup_owner_trust_database(self) -> None:
         """
         Cleanup owner trust database of keys not found in keyring
 

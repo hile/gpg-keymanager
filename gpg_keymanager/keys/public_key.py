@@ -11,11 +11,11 @@ import re
 
 from datetime import datetime, timezone
 from subprocess import run, PIPE, CalledProcessError
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..exceptions import PGPKeyError
 from .base import FingerprintObject
 from .constants import (
-    ACCEPTED_VALIDITY_STATES,
     FIELD_CREATION_DATE,
     FIELD_EXPIRATION_DATE,
     FIELD_KEY_CAPABILITIES,
@@ -26,13 +26,12 @@ from .constants import (
     FIELD_KEY_VALIDITY,
     KEY_CAPABILITIES,
     KEY_VALIDITY_FLAGS,
-    KEY_VALIDITY_STATUS_INVALID,
-    RECORD_TYPE_FINGERPRINT,
-    RECORD_TYPE_SUB_KEY,
-    RECORD_TYPE_USER_ATTRIBUTE,
-    RECORD_TYPE_USER_ID,
     REQUIRED_CAPABILITIES,
     TRUSTDB_TRUST_LABELS,
+    KeyCapability,
+    KeyValidityStatus,
+    KeyRecordType,
+    KeyTrustDB,
 )
 
 # Parse public key user ID required fields
@@ -44,10 +43,12 @@ class GpgOutputLine:
     """
     Parsed key fields line from key data output linked to a key
     """
+    __data__: Dict[Any, Any]
+
     def __init__(self, *args, **kwargs):
         self.__data__ = dict(*args, **kwargs)
 
-    def __get_timestamp_as_date__(self, field):
+    def __get_timestamp_as_date__(self, field: Optional[Any]) -> Optional[datetime]:
         """
         Get field timestamp value as date or None if not defined
         """
@@ -62,48 +63,49 @@ class KeyData(GpgOutputLine):
     GPG output line for key (public key, sub key) data
     """
     @property
-    def key_id(self):
+    def key_id(self) -> str:
         """
         Return key ID
         """
         return f"""0x{self.__data__[FIELD_KEY_ID]}"""
 
     @property
-    def key_length(self):
+    def key_length(self) -> int:
         """
         Return key length
         """
         return int(self.__data__[FIELD_KEY_LENGTH])
 
     @property
-    def key_capabilities(self):
+    def key_capabilities(self) -> Tuple[str]:
         """
         Return key capabilities
         """
-        return set(
+        capabilities = self.__data__.get(FIELD_KEY_CAPABILITIES, [])
+        return tuple(set(
             KEY_CAPABILITIES[capability.lower()]
-            for capability in self.__data__[FIELD_KEY_CAPABILITIES]
-        )
+            for capability in capabilities
+        ))
 
     @property
-    def key_validity(self):
+    def key_validity(self) -> str:
         """
         Return key validity
         """
         try:
             return KEY_VALIDITY_FLAGS[self.__data__[FIELD_KEY_VALIDITY].lower()]
         except KeyError:
-            return KEY_VALIDITY_STATUS_INVALID
+            return KeyValidityStatus.INVALID
 
     @property
-    def creation_date(self):
+    def creation_date(self) -> datetime:
         """
         Return key creation date
         """
         return self.__get_timestamp_as_date__(FIELD_CREATION_DATE)
 
     @property
-    def expiration_date(self):
+    def expiration_date(self) -> datetime:
         """
         Return key creation date
         """
@@ -114,7 +116,9 @@ class GpgOutputLineChild(GpgOutputLine):
     """
     Parsed key fields linked to parent key
     """
-    def __init__(self, key, *args, **kwargs):
+    key: 'PublicKey'
+
+    def __init__(self, key: 'PublicKey', *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.key = key
 
@@ -123,7 +127,9 @@ class Fingerprint(GpgOutputLineChild, FingerprintObject):
     """
     Fingerprint for public key file
     """
-    def __init__(self, key, *args, **kwargs):
+    fingerprint: str
+
+    def __init__(self, key: 'PublicKey', *args, **kwargs):
         super().__init__(key, *args, **kwargs)
         self.fingerprint = self.__data__[FIELD_USER_ID]
 
@@ -132,7 +138,11 @@ class UserID(GpgOutputLineChild):
     """
     User ID record for public key
     """
-    def __init__(self, key, *args, **kwargs):
+    user_id: str
+    email: str
+    fullname: str
+
+    def __init__(self, key: 'PublicKey', *args, **kwargs):
         super().__init__(key, *args, **kwargs)
         match = RE_USER_ID.match(self.__data__[FIELD_USER_ID])
         if not match:
@@ -141,29 +151,29 @@ class UserID(GpgOutputLineChild):
         for attr, value in match.groupdict().items():
             setattr(self, attr, value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__data__[FIELD_USER_ID]
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return str(self) == str(other)
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return str(self) != str(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> bool:
         return str(self) < str(other)
 
-    def __gt__(self, other):
+    def __gt__(self, other: Any) -> bool:
         return str(self) > str(other)
 
-    def __le__(self, other):
+    def __le__(self, other: Any) -> bool:
         return str(self) <= str(other)
 
-    def __ge__(self, other):
+    def __ge__(self, other: Any) -> bool:
         return str(self) >= str(other)
 
     @property
-    def creation_date(self):
+    def creation_date(self) -> Optional[datetime]:
         """
         Return key user ID creation date
         """
@@ -174,70 +184,66 @@ class SubKey(KeyData, GpgOutputLineChild):
     """
     Sub key of a public key
     """
-    def __init__(self, key, *args, **kwargs):
-        super().__init__(key, *args, **kwargs)
-        self.fingerprint = None
-
     def __repr__(self):
-        return self.key_id
+        return self.key_id if self.key_id else ''
 
 
 class PublicKey(KeyData, GpgOutputLine):
     """
     Public key parsed from gpg output
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.keyring = kwargs.pop('keyring', None)
         super().__init__(*args, **kwargs)
         self.fingerprint = None
         self.user_ids = []
         self.sub_keys = []
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.key_id if FIELD_USER_ID in self.__data__ else 'uninitialized'
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return str(self) == str(other)
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return str(self) != str(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> bool:
         return str(self) < str(other)
 
-    def __gt__(self, other):
+    def __gt__(self, other: Any) -> bool:
         return str(self) > str(other)
 
-    def __le__(self, other):
+    def __le__(self, other: Any) -> bool:
         return str(self) <= str(other)
 
-    def __ge__(self, other):
+    def __ge__(self, other: Any) -> bool:
         return str(self) >= str(other)
 
-    def __load_child_record__(self, **data):
+    def __load_child_record__(self, **data) -> None:
         """
         Load a child record from parsed data
         """
         record_type = data[FIELD_RECORD_TYPE]
-        if record_type == RECORD_TYPE_FINGERPRINT:
+        if record_type == KeyRecordType.FINGERPRINT.value:
             key = self.sub_keys[-1] if self.sub_keys else self
             key.fingerprint = Fingerprint(key, **data)
             return key.fingerprint
-        if record_type == RECORD_TYPE_SUB_KEY:
+        if record_type == KeyRecordType.SUB_KEY.value:
             subkey = SubKey(self, **data)
             self.sub_keys.append(subkey)
             return subkey
-        if record_type == RECORD_TYPE_USER_ID:
+        if record_type == KeyRecordType.USER_ID.value:
             user_id = UserID(self, **data)
             self.user_ids.append(user_id)
             return user_id
-        if record_type == RECORD_TYPE_USER_ATTRIBUTE:
+        if record_type == KeyRecordType.USER_ATTRIBUTE.value:
             # User attributes are ignored for now
             return None
         raise PGPKeyError(f'{self} Unexpected public key child record type {record_type}')
 
     @property
-    def primary_user_id(self):
+    def primary_user_id(self) -> str:
         """
         Return first user ID as primary user ID for key
         """
@@ -247,30 +253,26 @@ class PublicKey(KeyData, GpgOutputLine):
             raise PGPKeyError(f'No user ID detected {self}') from error
 
     @property
-    def emails(self):
+    def emails(self) -> List[str]:
         """
         Return email addresses in key identities
         """
-        return set(user_id.email for user_id in self.user_ids)
+        return list(set(user_id.email for user_id in self.user_ids))
 
-    def validate(self, capabilities=REQUIRED_CAPABILITIES, validity_states=ACCEPTED_VALIDITY_STATES):
+    def validate(self, capabilities=REQUIRED_CAPABILITIES) -> None:
         """
         Validate key attributes for password store encryption usage
 
         Checks if:
-        - key validity is one of accepted key validity states
         - key can be used for encryption
         """
-        if self.key_validity not in validity_states:
-            raise PGPKeyError(
-                f'Key validity status is "{self.key_validity}" '
-                f"""must be one of {','.join(validity_states)}"""
-            )
         for capability in capabilities:
+            if isinstance(capability, str):
+                capability = KeyCapability(capability)
             if capability not in self.key_capabilities:
                 raise PGPKeyError(f'Key does not have capability {capability}')
 
-    def match_key_id(self, value):
+    def match_key_id(self, value: str) -> bool:
         """
         Match PGP key ID to specified value by short or long key ID, with or without 0x prefix
         """
@@ -282,7 +284,7 @@ class PublicKey(KeyData, GpgOutputLine):
             return True
         return False
 
-    def match_email_pattern(self, pattern):
+    def match_email_pattern(self, pattern: str) -> bool:
         """
         Match key user ID emails to specified pattern, returning True if any ID matches pattern
         """
@@ -291,7 +293,7 @@ class PublicKey(KeyData, GpgOutputLine):
                 return True
         return False
 
-    def delete_from_keyring(self):
+    def delete_from_keyring(self) -> None:
         """
         Delete key from user keyring
         """
@@ -304,20 +306,18 @@ class PublicKey(KeyData, GpgOutputLine):
         if self.keyring is not None:
             self.keyring.__remove_key__(self.key_id)
 
-    def update_trust(self, value):
+    def update_trust(self, value: str) -> None:
         """
         Update owner trust value. Value can be either integer or string from TRUSTDB_TRUST_LABELS
         """
-        for code, label in TRUSTDB_TRUST_LABELS.items():
+        for trust, label in TRUSTDB_TRUST_LABELS.items():
             if value == label:
-                value = code
+                value = trust.value
         try:
-            value = int(value)
-            if value not in TRUSTDB_TRUST_LABELS:
-                raise ValueError
+            trust = KeyTrustDB(int(value))
         except ValueError as error:
             raise PGPKeyError(f'Invalid trust value {value}: {error}') from error
-        label = TRUSTDB_TRUST_LABELS[value]
+        label = TRUSTDB_TRUST_LABELS[trust]
         print(f'set owner trust key {self} trust {label}')
         response = run(
             ('gpg', '--import-ownertrust'),

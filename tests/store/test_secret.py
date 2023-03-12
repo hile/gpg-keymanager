@@ -70,7 +70,7 @@ class MockSaveSecret(MockStdoutCommand):
         return self
 
 
-def mock_store_secrets(store):
+def mock_store_secrets(store) -> None:
     """
     Return mocked store secrets a and b for given password store
     """
@@ -81,7 +81,7 @@ def mock_store_secrets(store):
     return a, b
 
 
-def validate_secret_properties(store, secret):
+def validate_secret_properties(store, secret) -> None:
     """
     Validate properties of a Secret object
     """
@@ -93,7 +93,7 @@ def validate_secret_properties(store, secret):
 
 
 # pylint: disable=unused-argument
-def test_secret_valid_store_properties(mock_valid_store):
+def test_secret_valid_store_properties(mock_valid_store) -> None:
     """
     Test loading secrets from valid password store
     """
@@ -105,7 +105,7 @@ def test_secret_valid_store_properties(mock_valid_store):
 
 
 # pylint: disable=unused-argument
-def test_secret_mock_attributes(mock_valid_store):
+def test_secret_mock_attributes(mock_valid_store) -> None:
     """
     Test attributes of mocked secrets
     """
@@ -115,7 +115,7 @@ def test_secret_mock_attributes(mock_valid_store):
     validate_secret_properties(store, b)
 
 
-def test_secret_load_gpg_data_arguments(monkeypatch):
+def test_secret_load_gpg_data_arguments(monkeypatch) -> None:
     """
     Test arguments of the __get_gpg_file_contents__ call to gpg command
 
@@ -132,7 +132,7 @@ def test_secret_load_gpg_data_arguments(monkeypatch):
     assert args == (('gpg', '-o-', '-d', str(secret.path)),)
 
 
-def test_secret_load_gpg_data_error(monkeypatch):
+def test_secret_load_gpg_data_error(monkeypatch) -> None:
     """
     Test exception running command in __get_gpg_file_contents__
     """
@@ -145,7 +145,7 @@ def test_secret_load_gpg_data_error(monkeypatch):
 
 
 # pylint: disable=unused-argument
-def test_secret_compare_by_secret(mock_valid_store):
+def test_secret_compare_by_secret(mock_valid_store) -> None:
     """
     Test comparing secrets with known paths
     """
@@ -164,7 +164,7 @@ def test_secret_compare_by_secret(mock_valid_store):
 
 
 # pylint: disable=unused-argument
-def test_secret_compare_by_string(mock_valid_store):
+def test_secret_compare_by_string(mock_valid_store) -> None:
     """
     Test comparing secrets with known paths
     """
@@ -182,7 +182,7 @@ def test_secret_compare_by_string(mock_valid_store):
     assert b >= str(a)
 
 
-def test_secret_read_password(mock_secret_string_data):
+def test_secret_read_password(mock_secret_string_data) -> None:
     """
     Mock reading secret password (first line in text format secret)
     """
@@ -192,7 +192,7 @@ def test_secret_read_password(mock_secret_string_data):
     assert b.password == MOCK_SECRET_PASSWORD
 
 
-def test_secret_read_password_empty_file(mock_secret_empty_data):
+def test_secret_read_password_empty_file(mock_secret_empty_data) -> None:
     """
     Mock reading secret password (first line in text format secret) from empty file
     """
@@ -203,7 +203,7 @@ def test_secret_read_password_empty_file(mock_secret_empty_data):
         b.password  # pylint: disable=pointless-statement
 
 
-def test_secret_read_password_binary_error(mock_secret_binary_data):
+def test_secret_read_password_binary_error(mock_secret_binary_data) -> None:
     """
     Mock reading secret password with binary data, causing exception
     """
@@ -214,7 +214,7 @@ def test_secret_read_password_binary_error(mock_secret_binary_data):
         b.password  # pylint: disable=pointless-statement
 
 
-def test_secret_read_data_binary(mock_secret_binary_data):
+def test_secret_read_data_binary(mock_secret_binary_data) -> None:
     """
     Mock reading secret binary  contents as data
     """
@@ -224,7 +224,7 @@ def test_secret_read_data_binary(mock_secret_binary_data):
     assert a.data == b.data
 
 
-def test_secret_read_data_string(mock_secret_string_data):
+def test_secret_read_data_string(mock_secret_string_data) -> None:
     """
     Mock reading secret string contents as data
     """
@@ -234,7 +234,7 @@ def test_secret_read_data_string(mock_secret_string_data):
     assert a.data == b.data
 
 
-def test_secret_read_text_ok(mock_secret_string_data):
+def test_secret_read_text_ok(mock_secret_string_data) -> None:
     """
     Mock reading secret contents as text
     """
@@ -244,7 +244,7 @@ def test_secret_read_text_ok(mock_secret_string_data):
     assert a.text == b.text
 
 
-def test_secret_read_text_binary_error(mock_secret_binary_data):
+def test_secret_read_text_binary_error(mock_secret_binary_data) -> None:
     """
     Mock reading secret contents as text with binary data, causing exception
     """
@@ -255,7 +255,7 @@ def test_secret_read_text_binary_error(mock_secret_binary_data):
         b.text  # pylint: disable=pointless-statement
 
 
-def test_secret_save_error(monkeypatch, mock_empty_store):
+def test_secret_save_error(monkeypatch, mock_empty_store) -> None:
     """
     Test saving a new secret to root of password store in temporary directory
     with error running gpg command
@@ -270,7 +270,7 @@ def test_secret_save_error(monkeypatch, mock_empty_store):
         secret.save(MOCK_SECRET_STRING_CONTENTS)
 
 
-def test_secret_save_string_fail_write_directory(mock_empty_store):
+def test_secret_save_string_fail_write_directory(mock_empty_store) -> None:
     """
     Test saving a new secret to password store path
     """
@@ -280,7 +280,7 @@ def test_secret_save_string_fail_write_directory(mock_empty_store):
         secret.save(MOCK_SECRET_STRING_CONTENTS)
 
 
-def test_secret_save_ok_bytes_store_root(monkeypatch, mock_empty_store):
+def test_secret_save_ok_bytes_store_root(monkeypatch, mock_empty_store) -> None:
     """
     Test saving a new secret to root of password store in temporary directory
     """
@@ -293,7 +293,7 @@ def test_secret_save_ok_bytes_store_root(monkeypatch, mock_empty_store):
     secret.save(MOCK_SECRET_BINARY_CONTENTS)
 
 
-def test_secret_save_ok_string_store_root(monkeypatch, mock_empty_store):
+def test_secret_save_ok_string_store_root(monkeypatch, mock_empty_store) -> None:
     """
     Test saving a new secret to root of password store in temporary directory
     """
@@ -306,7 +306,7 @@ def test_secret_save_ok_string_store_root(monkeypatch, mock_empty_store):
     secret.save(MOCK_SECRET_STRING_CONTENTS)
 
 
-def test_secret_save_ok_string_store_subdir(monkeypatch, mock_empty_store):
+def test_secret_save_ok_string_store_subdir(monkeypatch, mock_empty_store) -> None:
     """
     Test saving a new secret to subdir of password store in temporary directory
     """
@@ -320,7 +320,7 @@ def test_secret_save_ok_string_store_subdir(monkeypatch, mock_empty_store):
     secret.save(MOCK_SECRET_STRING_CONTENTS)
 
 
-def test_secret_save_ok_string_existing_file(monkeypatch, mock_empty_store):
+def test_secret_save_ok_string_existing_file(monkeypatch, mock_empty_store) -> None:
     """
     Test saving existing file to subdir of password store in temporary directory
     """
@@ -334,7 +334,7 @@ def test_secret_save_ok_string_existing_file(monkeypatch, mock_empty_store):
     secret.save(MOCK_SECRET_STRING_CONTENTS)
 
 
-def test_secret_save_from_file(monkeypatch, mock_empty_store):
+def test_secret_save_from_file(monkeypatch, mock_empty_store) -> None:
     """
     Test saving a new secret to subdir of password store in temporary directory
     from a existing file
@@ -349,7 +349,7 @@ def test_secret_save_from_file(monkeypatch, mock_empty_store):
     secret.save_from_file(__file__)
 
 
-def test_secret_edit(monkeypatch, mock_empty_store, mock_editor_path):
+def test_secret_edit(monkeypatch, mock_empty_store, mock_editor_path) -> None:
     """
     Test editing a secret
     """
@@ -367,7 +367,7 @@ def test_secret_edit(monkeypatch, mock_empty_store, mock_editor_path):
     assert mock_edit.call_count == 1
 
 
-def test_secret_edit_error(monkeypatch, mock_empty_store, mock_editor_path):
+def test_secret_edit_error(monkeypatch, mock_empty_store, mock_editor_path) -> None:
     """
     Test editing a secret with error from editor
     """

@@ -7,6 +7,7 @@
 Common base classes for GPG key processing
 """
 from collections.abc import MutableSequence
+from typing import Any, Iterator, List, Optional, Union
 
 from ..exceptions import PGPKeyError
 
@@ -15,18 +16,22 @@ class GPGItemCollection(MutableSequence):
     """
     List of gpg data items
     """
+    __gpg_args__: List[str]
+    __loaded__: bool
+    __iter_items__: List[Any]
+
     def __init__(self, **kwargs):
         self.__items__ = kwargs.get('keys', [])
         self.__gpg_args__ = []
         self.__loaded__ = self.__items__ != []
         self.__iter_items__ = None
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator['GPGItemCollection']:
         if not self.is_loaded:
             self.load()
         return self
 
-    def __next__(self):
+    def __next__(self) -> Any:
         if self.__iter_items__ is None:
             if not self.is_loaded:
                 self.load()
@@ -37,13 +42,13 @@ class GPGItemCollection(MutableSequence):
             self.__iter_items__ = None
             raise StopIteration from error
 
-    def __delitem__(self, index):
+    def __delitem__(self, index) -> None:
         """
         Remove key from collection
         """
         del self.__items__[index]
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: Union[int, str]) -> Any:
         """
         Get key from collection
         """
@@ -56,7 +61,7 @@ class GPGItemCollection(MutableSequence):
                 raise PGPKeyError(error) from error
         return self.get(item)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Return number of keys
         """
@@ -64,13 +69,13 @@ class GPGItemCollection(MutableSequence):
             self.load()
         return len(self.__items__)
 
-    def __setitem__(self, index, key):
+    def __setitem__(self, index: int, key: Any) -> None:
         """
         Set key to collection
         """
         self.__items__[index] = key
 
-    def __remove_key__(self, key_id):
+    def __remove_key__(self, key_id: int) -> None:
         """
         Remove key by ID from loaded identities
 
@@ -81,13 +86,13 @@ class GPGItemCollection(MutableSequence):
                 del self.__items__[index]
 
     @property
-    def is_loaded(self):
+    def is_loaded(self) -> bool:
         """
         Property to check if PGP key password store is loaded
         """
         return self.__loaded__
 
-    def clear(self):
+    def clear(self) -> None:
         """
         Clear key collection and set loaded status to False
         """
@@ -96,19 +101,19 @@ class GPGItemCollection(MutableSequence):
         self.__loaded__ = False
 
     # pylint: disable=arguments-differ
-    def count(self, value):
+    def count(self, value) -> int:
         """
         Count number of keys
         """
         return self.__items__.count(value)
 
-    def insert(self, index, value):
+    def insert(self, index: int, value: Any) -> None:
         """
         Insert key to collection
         """
         self.__items__.insert(index, value)
 
-    def load(self):
+    def load(self) -> None:
         """
         Load keys to collection
 
@@ -116,7 +121,7 @@ class GPGItemCollection(MutableSequence):
         """
         raise NotImplementedError
 
-    def get(self, value):
+    def get(self, value: Any) -> Any:
         """
         Get item from collection
 
@@ -129,38 +134,38 @@ class FingerprintObject:
     """
     Generic key object with 'fingerprint' attribute used for sorting
     """
-    fingerprint = None
+    fingerprint: Optional[str] = None
 
     def __repr__(self):
         return self.fingerprint if self.fingerprint else str(self.__class__)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Union[str, 'FingerprintObject']) -> bool:
         if isinstance(other, str):
             return self.fingerprint == other
         return self.fingerprint == other.fingerprint
 
-    def __ne__(self, other):
+    def __ne__(self, other: Union[str, 'FingerprintObject']) -> bool:
         if isinstance(other, str):
             return self.fingerprint != other
         return self.fingerprint != other.fingerprint
 
-    def __lt__(self, other):
+    def __lt__(self, other: Union[str, 'FingerprintObject']) -> bool:
         print('__lt__', type(self), type(other))
         if isinstance(other, str):
             return self.fingerprint < other
         return self.fingerprint < other.fingerprint
 
-    def __gt__(self, other):
+    def __gt__(self, other: Union[str, 'FingerprintObject']) -> bool:
         if isinstance(other, str):
             return self.fingerprint > other
         return self.fingerprint > other.fingerprint
 
-    def __le__(self, other):
+    def __le__(self, other: Union[str, 'FingerprintObject']) -> bool:
         if isinstance(other, str):
             return self.fingerprint <= other
         return self.fingerprint <= other.fingerprint
 
-    def __ge__(self, other):
+    def __ge__(self, other: Union[str, 'FingerprintObject']) -> bool:
         if isinstance(other, str):
             return self.fingerprint >= other
         return self.fingerprint >= other.fingerprint
