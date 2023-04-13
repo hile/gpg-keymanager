@@ -36,9 +36,13 @@ pyflakes = "^3"
 pylint = "^2"
 pytest = "^7"
 tox = "^4"
+ruff = "^0.0.261"
 
 [tool.poetry.scripts]
 gpg-keymanager = 'gpg_keymanager.bin.gpg_keymanager:main'
+
+[tool.ruff]
+line-length = 120
 
 [build-system]
 requires = ["poetry-core>=1.3.2"]
